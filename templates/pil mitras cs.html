@@ -1,11 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Pipeline Mitra Register{% endblock %}
+{% block header_title %}Pipeline Mitra Register{% endblock %}
+
+{% block content %}
+<div class="form-container" id="vehiclemovementForm">
+
+  <button class="modify-btn" onclick="modifyRow()">
+    <i class="fas fa-pencil-alt"></i>
+  </button>
+
+  <button class="add-row" id="addRowButton">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <table class="table table-bordered">
+    <thead style="background-color: #e0e0e0">
+      <tr>
+        <th>Sr. No</th>
+        <th>Location</th>
+        <th>Date</th>
+        <th>Chainage No</th>
+        <th>PIL Mitra Name</th>
+        <th>Address</th>
+        <th>Mobile No</th>
+        <th>Remarks</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td contenteditable="true"></td>
+        <td><input type="date" /></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+  <button class="btn btn-warning px-5" style="margin: 0 auto">
+    Save
+  </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='javascript/table18.js') }}"></script>
+{% endblock %}

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+from Execute.Functions import functions
 
 routes_bp = Blueprint('routes_bp', __name__)
 
@@ -50,3 +51,6 @@ def requisition_form():
 @routes_bp.route('/reports')
 def reports():
     return render_template('reports.html')
+
+
+routes_bp.add_url_rule('/save_patrolling_data',view_func=functions.save_patrolling_data_fn,methods=['POST'])

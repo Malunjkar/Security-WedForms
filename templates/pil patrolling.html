@@ -1,11 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Patrolling Observation Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pil patrolling.css') }}">
 </head>
+
 <body>
-    
+
+<h2 style="text-align:center;">Patrolling Observation Register</h2>
+<div class="toolbar">
+    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-save" onclick="saveTable()">Save</button>
+    <button class="btn-download" onclick="downloadCSV()">Download</button>
+    <button class="btn-print" onclick="window.print()">Print</button>
+</div>
+
+<table id="patrolTable">
+    <thead>
+        <tr>
+            <th>Sr. No</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>From Time</th>
+            <th>To Time</th>
+            <th>Condition of boundary wall/fancing/gates/infrastructure</th>
+            <th>Condition of patrolling pathway</th>
+            <th>Any Suspicious Movement</th>
+            <th>Wild vegetation</th>
+            <th>Illumination status</th>
+            <th>Workers working without valid work permit</th>
+            <th>Any unknown person without authorized entry permits</th>
+            <th>Any unattended office in unlocked condition (Silent Hours)</th>
+            <th>Any other observations</th>
+            <th>Remarks</th>
+            <th>Name of patrolling guard</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    </tbody>
+</table>
+
+<script src="{{ url_for('static', filename='javascript/pil patrolling.js') }}"></script>
+
 </body>
 </html>

@@ -5,7 +5,11 @@ def save_patrolling_data(data, username="system"):
         conn = get_connection()
         cursor = conn.cursor()
 
-        insert_patrolling_record(cursor, data, username)
+        # 🔹 Get next primary key safely
+        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.Patrolling_Observation_Register")
+        next_sr_no = cursor.fetchone()[0]
+
+        insert_patrolling_record(cursor, data, next_sr_no, username)
 
         conn.commit()
         cursor.close()
@@ -15,7 +19,8 @@ def save_patrolling_data(data, username="system"):
 
     except Exception as e:
         return False, str(e)
-def insert_patrolling_record(cursor, data, username):
+
+def insert_patrolling_record(cursor, data, n_sr_no, username):
     sql = """
     INSERT INTO dbo.Patrolling_Observation_Register
     (
@@ -41,7 +46,7 @@ def insert_patrolling_record(cursor, data, username):
     """
 
     cursor.execute(sql, (
-        data.get("n_sr_no"),
+        n_sr_no,
         data.get("s_location_code"),
         data.get("d_patrol_date"),
         data.get("t_from_time"),

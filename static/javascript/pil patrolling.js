@@ -77,13 +77,12 @@ function deleteRow(btn) {
 
   if (!confirm("Are you sure you want to delete this record?")) return;
 
-  fetch("/delete_patrolling_data", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ n_sr_no: srNo })
-  })
-    .then(res => res.json())
-    .then(result => {
+  $.ajax({
+    url: "/delete_patrolling_data",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ n_sr_no: srNo }),
+    success: function (result) {
       if (result.success) {
         alert("Record deleted successfully");
         row.remove();
@@ -91,13 +90,12 @@ function deleteRow(btn) {
       } else {
         alert("Delete failed: " + result.message);
       }
-    })
-    .catch(err => {
-      console.error(err);
+    },
+    error: function () {
       alert("Server error while deleting");
-    });
+    },
+  });
 }
-
 
 /* ================= EDIT ================= */
 function editRow(btn) {
@@ -110,8 +108,20 @@ function editRow(btn) {
   const loc = cells[1].innerText;
   cells[1].innerHTML = `
     <select>
-      ${["CS01","CS02","CS03","CS04","CS05","CS06","CS07","CS08","CS09","CS10"]
-        .map(v => `<option value="${v}">${v}</option>`).join("")}
+      ${[
+        "CS01",
+        "CS02",
+        "CS03",
+        "CS04",
+        "CS05",
+        "CS06",
+        "CS07",
+        "CS08",
+        "CS09",
+        "CS10",
+      ]
+        .map((v) => `<option value="${v}">${v}</option>`)
+        .join("")}
     </select>`;
   cells[1].querySelector("select").value = loc;
 
@@ -139,17 +149,18 @@ function saveTable() {
   const rows = document.querySelectorAll("#patrolTable tbody tr");
   let hasAction = false;
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const c = row.querySelectorAll("td");
 
     /* ---------- INSERT ---------- */
     if (row.dataset.new === "true") {
       hasAction = true;
 
-      fetch("/save_patrolling_data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      $.ajax({
+        url: "/save_patrolling_data",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
           s_location_code: c[1].querySelector("select").value,
           d_patrol_date: c[2].querySelector("input").value,
           t_from_time: c[3].querySelector("input").value,
@@ -160,12 +171,16 @@ function saveTable() {
           s_wild_vegetation: c[8].querySelector("select").value,
           s_illumination_status: c[9].querySelector("select").value,
           s_workers_without_valid_permit: c[10].querySelector("select").value,
-          s_unknown_person_without_authorization: c[11].querySelector("select").value,
+          s_unknown_person_without_authorization:
+            c[11].querySelector("select").value,
           s_unattended_office_unlocked: c[12].querySelector("select").value,
           s_other_observations_status: c[13].querySelector("select").value,
           s_remarks: c[14].querySelector("textarea").value,
           s_patrolling_guard_name: c[15].querySelector("input").value,
-        })
+        }),
+        error: function () {
+          alert("Error while saving data");
+        },
       });
     }
 
@@ -173,10 +188,11 @@ function saveTable() {
     if (row.dataset.edited === "true" && !row.dataset.new) {
       hasAction = true;
 
-      fetch("/update_patrolling_data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      $.ajax({
+        url: "/update_patrolling_data",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
           n_sr_no: row.dataset.id,
           s_location_code: c[1].querySelector("select").value,
           d_patrol_date: c[2].querySelector("input").value,
@@ -188,12 +204,16 @@ function saveTable() {
           s_wild_vegetation: c[8].querySelector("select").value,
           s_illumination_status: c[9].querySelector("select").value,
           s_workers_without_valid_permit: c[10].querySelector("select").value,
-          s_unknown_person_without_authorization: c[11].querySelector("select").value,
+          s_unknown_person_without_authorization:
+            c[11].querySelector("select").value,
           s_unattended_office_unlocked: c[12].querySelector("select").value,
           s_other_observations_status: c[13].querySelector("select").value,
           s_remarks: c[14].querySelector("textarea").value,
           s_patrolling_guard_name: c[15].querySelector("input").value,
-        })
+        }),
+        error: function () {
+          alert("Error while updating data");
+        },
       });
     }
   });
@@ -211,10 +231,14 @@ function saveTable() {
 document.addEventListener("DOMContentLoaded", loadPatrollingData);
 
 function loadPatrollingData() {
-  fetch("/get_patrolling_data")
-    .then(res => res.json())
-    .then(result => {
-      if (!result.success) return alert("Failed to load");
+  $.ajax({
+    url: "/get_patrolling_data",
+    type: "GET",
+    success: function (result) {
+      if (!result.success) {
+        alert("Failed to load");
+        return;
+      }
 
       const tbody = document.querySelector("#patrolTable tbody");
       tbody.innerHTML = "";
@@ -247,5 +271,9 @@ function loadPatrollingData() {
         `;
         tbody.appendChild(tr);
       });
-    });
+    },
+    error: function () {
+      alert("Server error while loading data");
+    },
+  });
 }

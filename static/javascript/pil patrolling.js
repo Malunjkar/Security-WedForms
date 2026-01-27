@@ -14,7 +14,6 @@ function patrollingApp() {
     });
   }
 
-
   /* ================= ADD ROW ================= */
   function addRow() {
     const tbody = document.querySelector("#patrolTable tbody");

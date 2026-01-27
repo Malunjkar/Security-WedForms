@@ -1,6 +1,8 @@
 from flask import request, jsonify
 from Execute import queries
 
+#------------start Patrolling Observation Register-----------------
+#------------create------------------
 def save_patrolling_data_fn():
     try:
         data = request.get_json()
@@ -24,6 +26,7 @@ def save_patrolling_data_fn():
             "message": str(e)
         }), 500
 
+#-----------------read-----------------
 def get_patrolling_data():
     success, data = queries.get_patrolling_data()
     return jsonify({
@@ -31,7 +34,7 @@ def get_patrolling_data():
         "data": data
     })
 
-
+#----------------edit------------------
 def update_patrolling_data():
     from flask import request, jsonify
     data = request.get_json()
@@ -43,6 +46,7 @@ def update_patrolling_data():
         "message": msg
     })
 
+#----------------delete-------------
 def delete_patrolling_data():
     from flask import request, jsonify
     data = request.get_json()
@@ -59,3 +63,5 @@ def delete_patrolling_data():
         "success": success,
         "message": msg
     })
+#------------ end Patrolling Observation Register-----------------
+

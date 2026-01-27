@@ -52,7 +52,7 @@ def requisition_form():
 def reports():
     return render_template('reports.html')
 
-
+#------------start Patrolling Observation Register-----------------
 routes_bp.add_url_rule('/save_patrolling_data',view_func=functions.save_patrolling_data_fn,methods=['POST'])
 routes_bp.add_url_rule('/get_patrolling_data',view_func=functions.get_patrolling_data,methods=['GET'])
 routes_bp.add_url_rule('/update_patrolling_data',view_func=functions.update_patrolling_data,methods=['POST'])

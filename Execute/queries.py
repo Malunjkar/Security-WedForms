@@ -1,5 +1,6 @@
 from Execute.executesql import get_connection
 
+#------------start Patrolling Observation Register-----------------
 def save_patrolling_data(data, username="system"):
     try:
         conn = get_connection()
@@ -20,6 +21,7 @@ def save_patrolling_data(data, username="system"):
     except Exception as e:
         return False, str(e)
 
+#--------------create---------------
 def insert_patrolling_record(cursor, data, n_sr_no, username):
     sql = """
     INSERT INTO dbo.Patrolling_Observation_Register
@@ -65,7 +67,7 @@ def insert_patrolling_record(cursor, data, n_sr_no, username):
         username
     ))
 
-
+#------------get data----------------------
 def get_patrolling_data():
     try:
         conn = get_connection()
@@ -124,6 +126,7 @@ def get_patrolling_data():
     except Exception as e:
         return False, str(e)
 
+#------------edit------------------------
 def update_patrolling_data(data, username="system"):
     try:
         conn = get_connection()
@@ -180,7 +183,7 @@ def update_patrolling_data(data, username="system"):
 
     except Exception as e:
         return False, str(e)
-
+#----------------delete-----------------------
 def delete_patrolling_data(data):
     try:
         conn = get_connection()
@@ -197,3 +200,5 @@ def delete_patrolling_data(data):
 
     except Exception as e:
         return False, str(e)
+    
+#------------ end Patrolling Observation Register-----------------

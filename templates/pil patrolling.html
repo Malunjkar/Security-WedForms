@@ -9,43 +9,125 @@
 
 <body>
 
-<h2 style="text-align:center;">Patrolling Observation Register</h2>
-<div class="toolbar">
-    <button class="btn-add" onclick="addRow()">Add Row</button>
-    <button class="btn-save" onclick="saveTable()">Save</button>
-    <button class="btn-download" onclick="downloadCSV()">Download</button>
-    <button class="btn-print" onclick="window.print()">Print</button>
-</div>
+    <h2 style="text-align:center;">Patrolling Observation Register</h2>
 
-<table id="patrolTable">
-    <thead>
-        <tr>
-            <th>Sr. No</th>
-            <th>Location</th>
-            <th>Date</th>
-            <th>From Time</th>
-            <th>To Time</th>
-            <th>Condition of boundary wall/fancing/gates/infrastructure</th>
-            <th>Condition of patrolling pathway</th>
-            <th>Any Suspicious Movement</th>
-            <th>Wild vegetation</th>
-            <th>Illumination status</th>
-            <th>Workers working without valid work permit</th>
-            <th>Any unknown person without authorized entry permits</th>
-            <th>Any unattended office in unlocked condition (Silent Hours)</th>
-            <th>Any other observations</th>
-            <th>Remarks</th>
-            <th>Name of patrolling guard</th>
-            <th>Action</th>
+    <div class="toolbar">
+        <button class="btn-add" onclick="addRow()">Add Row</button>
+        <button class="btn-save" onclick="saveTable()">Save</button>
+    </div>
+
+    <table id="patrolTable">
+        <thead>
+            <tr>
+                <th>Sr. No</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>From Time</th>
+                <th>To Time</th>
+
+                <th>Condition of boundary wall / fencing / gates / infrastructure</th>
+                <th>Condition of patrolling pathway</th>
+                <th>Any Suspicious Movement</th>
+                <th>Wild vegetation</th>
+                <th>Illumination status</th>
+                <th>Workers working without valid work permit</th>
+                <th>Any unknown person without authorized entry permits</th>
+                <th>Any unattended office in unlocked condition (Silent Hours)</th>
+                <th>Any other observations</th>
+
+                <th>Remarks</th>
+                <th>Name of patrolling guard</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody></tbody>
+    </table>
+
+    <!-- ================= OK / NOT OK TEMPLATE ================= -->
+    <template id="okNotOkTemplate">
+        <select>
+            <option value="OK">OK</option>
+            <option value="NOT OK">NOT OK</option>
+        </select>
+    </template>
+
+    <!-- ================= LOCATION TEMPLATE ================= -->
+    <template id="locationTemplate">
+        <select>
+            <option value="">Select Location</option>
+            <option value="CS01">CS01</option>
+            <option value="CS02">CS02</option>
+            <option value="CS03">CS03</option>
+            <option value="CS04">CS04</option>
+            <option value="CS05">CS05</option>
+            <option value="CS06">CS06</option>
+            <option value="CS07">CS07</option>
+            <option value="CS08">CS08</option>
+            <option value="CS09">CS09</option>
+            <option value="CS10">CS10</option>
+        </select>
+    </template>
+
+    <!-- ================= ADD ROW TEMPLATE ================= -->
+    <template id="addRowTemplate">
+        <tr data-new="true">
+            <td class="sr-no"></td>
+            <td class="location"></td>
+            <td><input type="date"></td>
+            <td><input type="time"></td>
+            <td><input type="time"></td>
+
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+            <td class="ok"></td>
+
+            <td><textarea></textarea></td>
+            <td><input type="text"></td>
+            <td>
+                <button class="btn-edit" onclick="editRow(this)">Edit</button>
+                <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
+            </td>
         </tr>
-    </thead>
+    </template>
 
-    <tbody>
+    <!-- ================= VIEW ROW TEMPLATE ================= -->
+    <template id="viewRowTemplate">
+        <tr>
+            <td class="sr-no"></td>
+            <td class="loc"></td>
+            <td class="date"></td>
+            <td class="from"></td>
+            <td class="to"></td>
 
-    </tbody>
-</table>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/pil patrolling.js') }}"></script>
+            <td class="c1"></td>
+            <td class="c2"></td>
+            <td class="c3"></td>
+            <td class="c4"></td>
+            <td class="c5"></td>
+            <td class="c6"></td>
+            <td class="c7"></td>
+            <td class="c8"></td>
+            <td class="c9"></td>
+
+            <td class="remarks"></td>
+            <td class="guard"></td>
+            <td>
+                <button class="btn-edit" onclick="editRow(this)">Edit</button>
+                <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
+            </td>
+        </tr>
+    </template>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='javascript/pil patrolling.js') }}"></script>
 
 </body>
+
 </html>

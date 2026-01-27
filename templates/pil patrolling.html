@@ -5,15 +5,53 @@
     <meta charset="UTF-8">
     <title>Patrolling Observation Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pil patrolling.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
+    <!-- HEADER -->
+    <header class="header-dashboard">
 
-    <h2 style="text-align:center;">Patrolling Observation Register</h2>
+        <div class="hamburger-dashboard" id="hamburger"
+            style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            ☰
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo-dashboard">
+        </div>
+        <h2 style="text-align:center; position: sticky;">Patrolling Observation Register</h2>
+
+        <div id="profileAvatar"
+            style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+            <div id="profileInitials"
+                style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+                display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+                {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+            </div>
+
+            <span id="username" style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+                {{ (session.get('user') or {}).get('name','Guest User') }}
+            </span>
+        </div>
+
+        <!-- Hamburger Menu -->
+        <div id="hamburgerMenu"
+            style="display:none;position:absolute;left:10px;top:60px;background:#fff;
+            border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.1);
+            overflow:hidden;min-width:220px;">
+            <a href="{{ url_for('routes_bp.home') }}"
+                style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+                Forms Page
+            </a>
+        </div>
+
+    </header>
+
+    
 
     <div class="toolbar">
         <button class="btn-add" onclick="addRow()">Add Row</button>
         <button class="btn-save" onclick="saveTable()">Save</button>
+        <button class="btn-action" onclick="toggleAction()">Action</button>
     </div>
 
     <table id="patrolTable">
@@ -37,7 +75,7 @@
 
                 <th>Remarks</th>
                 <th>Name of patrolling guard</th>
-                <th>Action</th>
+                <th class="action-col">Action</th>
             </tr>
         </thead>
 
@@ -90,9 +128,13 @@
 
             <td><textarea></textarea></td>
             <td><input type="text"></td>
-            <td>
-                <button class="btn-edit" onclick="editRow(this)">Edit</button>
-                <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
+            <td class="action-col">
+            <button class="icon-btn edit" onclick="editRow(this)">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="icon-btn delete" onclick="deleteRow(this)">
+                <i class="fa-solid fa-trash"></i>
+            </button>
             </td>
         </tr>
     </template>
@@ -118,9 +160,13 @@
 
             <td class="remarks"></td>
             <td class="guard"></td>
-            <td>
-                <button class="btn-edit" onclick="editRow(this)">Edit</button>
-                <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
+            <td class="action-col">
+            <button class="icon-btn edit" onclick="editRow(this)">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="icon-btn delete" onclick="deleteRow(this)">
+                <i class="fa-solid fa-trash"></i>
+            </button>
             </td>
         </tr>
     </template>

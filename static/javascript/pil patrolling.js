@@ -8,7 +8,6 @@ function patrollingApp() {
   function updateSerialNumbers() {
     const rows = document.querySelectorAll("#patrolTable tbody tr");
     const total = rows.length;
-
     rows.forEach((row, i) => {
       row.querySelector(".sr-no").innerText = total - i;
     });
@@ -22,13 +21,12 @@ function patrollingApp() {
 
     row.querySelector(".location")
       .appendChild(cloneTemplate("locationTemplate"));
-
     row.querySelectorAll(".ok").forEach(td => {
       td.appendChild(cloneTemplate("okNotOkTemplate"));
     });
-
     tbody.prepend(row);
     updateSerialNumbers();
+    applyActionVisibility();
   }
 
   /* ================= DELETE ================= */
@@ -89,19 +87,16 @@ function patrollingApp() {
       sel.querySelector("select").value = val;
       row.children[i].appendChild(sel);
     }
-
     const rVal = row.querySelector(".remarks").innerText;
     row.children[14].innerHTML = "";
     const ta = document.createElement("textarea");
     ta.value = rVal;
     row.children[14].appendChild(ta);
-
     const gVal = row.querySelector(".guard").innerText;
     row.children[15].innerHTML = "";
     const gi = document.createElement("input");
     gi.value = gVal;
     row.children[15].appendChild(gi);
-
     btn.disabled = true;
     btn.innerText = "Editing";
   }
@@ -110,10 +105,8 @@ function patrollingApp() {
   function saveTable() {
     const rows = document.querySelectorAll("#patrolTable tbody tr");
     let hasAction = false;
-
     rows.forEach(row => {
       const td = row.children;
-
       const payload = {
         s_location_code: td[1].querySelector("select")?.value,
         d_patrol_date: td[2].querySelector("input")?.value,
@@ -156,7 +149,6 @@ function patrollingApp() {
       alert("Nothing to save");
       return;
     }
-
     alert("Saved successfully");
     loadPatrollingData();
   }
@@ -172,14 +164,11 @@ function patrollingApp() {
     res.data.forEach(r => {
       const tpl = cloneTemplate("viewRowTemplate");
       const row = tpl.querySelector("tr");
-
       row.dataset.id = r.n_sr_no;
-
       row.querySelector(".loc").innerText = r.s_location_code;
       row.querySelector(".date").innerText = r.d_patrol_date;
       row.querySelector(".from").innerText = r.t_from_time;
       row.querySelector(".to").innerText = r.t_to_time;
-
       [
         r.s_boundary_wall_condition,
         r.s_patrolling_pathway_condition,
@@ -193,22 +182,40 @@ function patrollingApp() {
       ].forEach((v, idx) => {
         row.children[5 + idx].innerText = v || "";
       });
-
       row.querySelector(".remarks").innerText = r.s_remarks || "";
       row.querySelector(".guard").innerText = r.s_patrolling_guard_name;
 
       tbody.appendChild(row);
     });
-
     updateSerialNumbers();
+    applyActionVisibility();
   });
 }
+
+//-----------toggleAction for action column---------
+let actionVisible = false;
+
+function toggleAction() {
+  actionVisible = !actionVisible;
+
+  document.querySelectorAll(".action-col").forEach(col => {
+    col.style.display = actionVisible ? "table-cell" : "none";
+  });
+}
+function applyActionVisibility() {
+  document.querySelectorAll(".action-col").forEach(col => {
+    col.style.display = actionVisible ? "table-cell" : "none";
+  });
+}
+
 
  /* ================= EXPOSE TO HTML ================= */
   window.addRow = addRow;
   window.saveTable = saveTable;
   window.editRow = editRow;
   window.deleteRow = deleteRow;
+  window.toggleAction = toggleAction;
+
 
   document.addEventListener("DOMContentLoaded", loadPatrollingData);
 

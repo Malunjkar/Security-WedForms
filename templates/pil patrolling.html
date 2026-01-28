@@ -48,12 +48,16 @@
 
     
 
-    <div class="toolbar">
-        <button class="btn-add" onclick="addRow()">Add Row</button>
-        <button class="btn-save" onclick="saveTable()">Save</button>
-        <button class="btn-action" onclick="toggleAction()">Action</button>
+    <div class="toolbar" style="justify-content: flex-end;">
+        <div class="pagination">
+            <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+        </div>
     </div>
 
+
+    <div class="table-wrapper">
     <table id="patrolTable">
         <thead>
             <tr>
@@ -81,6 +85,12 @@
 
         <tbody></tbody>
     </table>
+    </div>
+    <div class="table-footer">
+        <button class="btn-add" onclick="addRow()">Add Row</button>
+        <button class="btn-save" onclick="saveTable()">Save</button>
+    </div>
+
 
     <!-- ================= OK / NOT OK TEMPLATE ================= -->
     <template id="okNotOkTemplate">

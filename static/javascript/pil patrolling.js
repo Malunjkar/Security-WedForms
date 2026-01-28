@@ -1,5 +1,9 @@
 function patrollingApp() {
 
+  let allData = [];
+  let currentPage = 1;
+  const rowsPerPage = 10;
+
   /* ================= HELPERS ================= */
   function cloneTemplate(id) {
     return document.getElementById(id).content.cloneNode(true);
@@ -26,7 +30,6 @@ function patrollingApp() {
     });
     tbody.prepend(row);
     updateSerialNumbers();
-    applyActionVisibility();
   }
 
   /* ================= DELETE ================= */
@@ -154,58 +157,82 @@ function patrollingApp() {
   }
 
   /* ================= LOAD ================= */
-  function loadPatrollingData() {
+function loadPatrollingData() {
   $.get("/get_patrolling_data", res => {
     if (!res.success) return alert("Load failed");
 
-    const tbody = document.querySelector("#patrolTable tbody");
-    tbody.innerHTML = "";
+    // ✅ latest record first (descending)
+    allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
 
-    res.data.forEach(r => {
-      const tpl = cloneTemplate("viewRowTemplate");
-      const row = tpl.querySelector("tr");
-      row.dataset.id = r.n_sr_no;
-      row.querySelector(".loc").innerText = r.s_location_code;
-      row.querySelector(".date").innerText = r.d_patrol_date;
-      row.querySelector(".from").innerText = r.t_from_time;
-      row.querySelector(".to").innerText = r.t_to_time;
-      [
-        r.s_boundary_wall_condition,
-        r.s_patrolling_pathway_condition,
-        r.s_suspicious_movement,
-        r.s_wild_vegetation,
-        r.s_illumination_status,
-        r.s_workers_without_valid_permit,
-        r.s_unknown_person_without_authorization,
-        r.s_unattended_office_unlocked,
-        r.s_other_observations_status
-      ].forEach((v, idx) => {
-        row.children[5 + idx].innerText = v || "";
-      });
-      row.querySelector(".remarks").innerText = r.s_remarks || "";
-      row.querySelector(".guard").innerText = r.s_patrolling_guard_name;
+    currentPage = 1;
+    renderPage();
+  });
+}
 
-      tbody.appendChild(row);
+function renderPage() {
+  const tbody = document.querySelector("#patrolTable tbody");
+  tbody.innerHTML = "";
+
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const pageData = allData.slice(start, end);
+
+  pageData.forEach(r => {
+    const tpl = cloneTemplate("viewRowTemplate");
+    const row = tpl.querySelector("tr");
+
+    row.dataset.id = r.n_sr_no;
+    row.querySelector(".loc").innerText = r.s_location_code;
+    row.querySelector(".date").innerText = r.d_patrol_date;
+    row.querySelector(".from").innerText = r.t_from_time;
+    row.querySelector(".to").innerText = r.t_to_time;
+
+    [
+      r.s_boundary_wall_condition,
+      r.s_patrolling_pathway_condition,
+      r.s_suspicious_movement,
+      r.s_wild_vegetation,
+      r.s_illumination_status,
+      r.s_workers_without_valid_permit,
+      r.s_unknown_person_without_authorization,
+      r.s_unattended_office_unlocked,
+      r.s_other_observations_status
+    ].forEach((v, idx) => {
+      row.children[5 + idx].innerText = v || "";
     });
-    updateSerialNumbers();
-    applyActionVisibility();
+
+    row.querySelector(".remarks").innerText = r.s_remarks || "";
+    row.querySelector(".guard").innerText = r.s_patrolling_guard_name;
+
+    tbody.appendChild(row);
   });
+
+  updateSerialNumbers();
+  updatePaginationButtons();
+}
+function updatePaginationButtons() {
+  const totalPages = Math.ceil(allData.length / rowsPerPage);
+
+  document.getElementById("pageInfo").innerText =
+    `Page ${currentPage} of ${totalPages}`;
+
+  document.getElementById("prevBtn").disabled = currentPage === 1;
+  document.getElementById("nextBtn").disabled = currentPage === totalPages;
 }
 
-//-----------toggleAction for action column---------
-let actionVisible = false;
-
-function toggleAction() {
-  actionVisible = !actionVisible;
-
-  document.querySelectorAll(".action-col").forEach(col => {
-    col.style.display = actionVisible ? "table-cell" : "none";
-  });
+function nextPage() {
+  const totalPages = Math.ceil(allData.length / rowsPerPage);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderPage();
+  }
 }
-function applyActionVisibility() {
-  document.querySelectorAll(".action-col").forEach(col => {
-    col.style.display = actionVisible ? "table-cell" : "none";
-  });
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
 }
 
 
@@ -214,7 +241,8 @@ function applyActionVisibility() {
   window.saveTable = saveTable;
   window.editRow = editRow;
   window.deleteRow = deleteRow;
-  window.toggleAction = toggleAction;
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
 
 
   document.addEventListener("DOMContentLoaded", loadPatrollingData);

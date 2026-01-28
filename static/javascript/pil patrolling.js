@@ -23,8 +23,7 @@ function patrollingApp() {
     const tpl = cloneTemplate("addRowTemplate");
     const row = tpl.querySelector("tr");
 
-    row.querySelector(".location")
-      .appendChild(cloneTemplate("locationTemplate"));
+    row.querySelector(".location").innerText = USER_LOCATION;
     row.querySelectorAll(".ok").forEach(td => {
       td.appendChild(cloneTemplate("okNotOkTemplate"));
     });
@@ -66,12 +65,7 @@ function patrollingApp() {
     const row = btn.closest("tr");
     row.dataset.edited = "true";
 
-    const loc = row.querySelector(".loc").innerText;
-    const locTd = row.children[1];
-    locTd.innerHTML = "";
-    const locSelect = cloneTemplate("locationTemplate");
-    locSelect.querySelector("select").value = loc;
-    locTd.appendChild(locSelect);
+    row.children[1].innerText = USER_LOCATION;
 
     ["date", "from", "to"].forEach((cls, i) => {
       const td = row.children[2 + i];
@@ -111,7 +105,7 @@ function patrollingApp() {
     rows.forEach(row => {
       const td = row.children;
       const payload = {
-        s_location_code: td[1].querySelector("select")?.value,
+        s_location_code: USER_LOCATION,
         d_patrol_date: td[2].querySelector("input")?.value,
         t_from_time: td[3].querySelector("input")?.value,
         t_to_time: td[4].querySelector("input")?.value,

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template , session
 from Execute.Functions import functions
 
 routes_bp = Blueprint('routes_bp', __name__)
@@ -7,11 +7,13 @@ routes_bp = Blueprint('routes_bp', __name__)
 def home():
     return render_template('main.html')
 
-
 @routes_bp.route('/pil-patrolling')
 def pil_patrolling():
-    return render_template('pil patrolling.html')
-
+    user = session.get('user', {})
+    return render_template(
+        'pil patrolling.html',
+        user_location=user.get('location', '')
+    )
 
 @routes_bp.route('/pil-baa-test')
 def pil_baa_test():

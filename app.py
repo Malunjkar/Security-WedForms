@@ -7,11 +7,19 @@ def create_app():
 
     @app.before_request
     def set_default_user():
+        email = "Pilsecurity.CS01@pipelineinfra.com"
+        location = email.split('@')[0].split('.')[-1]
+
         if 'user' not in session:
-            session['user'] = {
-                "email": "Pilsecurity.CS01@pipelineinfra.com",
-                "name": "PIL Security CS01"
-            }
+            session['user'] = {}
+
+        session['user'].update({
+            "email": email,
+            "name": "PIL Security CS01",
+            "location": location
+        })
+
+
 
 
     from route import routes_bp

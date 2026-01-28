@@ -100,22 +100,6 @@
         </select>
     </template>
 
-    <!-- ================= LOCATION TEMPLATE ================= -->
-    <template id="locationTemplate">
-        <select>
-            <option value="">Select Location</option>
-            <option value="CS01">CS01</option>
-            <option value="CS02">CS02</option>
-            <option value="CS03">CS03</option>
-            <option value="CS04">CS04</option>
-            <option value="CS05">CS05</option>
-            <option value="CS06">CS06</option>
-            <option value="CS07">CS07</option>
-            <option value="CS08">CS08</option>
-            <option value="CS09">CS09</option>
-            <option value="CS10">CS10</option>
-        </select>
-    </template>
 
     <!-- ================= ADD ROW TEMPLATE ================= -->
     <template id="addRowTemplate">
@@ -181,9 +165,10 @@
         </tr>
     </template>
 
+    <script>const USER_LOCATION = "{{ user_location }}";</script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='javascript/pil patrolling.js') }}"></script>
-
+    
 </body>
 
 </html>

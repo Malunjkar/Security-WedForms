@@ -759,12 +759,13 @@ def save_visitor_data(data, username="system"):
         cursor.execute(sql, (
             next_sr_no,
             data.get("s_location_code"),
-            data.get("dt_visit_datetime"),
+            data.get("dt_visit_datetime").replace("T", " "),
             data.get("s_visitor_name"),
             data.get("s_visitor_pass_no"),
             data.get("s_whom_to_meet"),
             username
         ))
+
 
         conn.commit()
         cursor.close()
@@ -837,13 +838,14 @@ def update_visitor_data(data, username="system"):
 
         cursor.execute(sql, (
             data.get("s_location_code"),
-            data.get("dt_visit_datetime"),
+            data.get("dt_visit_datetime").replace("T", " "),
             data.get("s_visitor_name"),
             data.get("s_visitor_pass_no"),
             data.get("s_whom_to_meet"),
             username,
             data.get("n_sr_no")
         ))
+
 
         conn.commit()
         cursor.close()

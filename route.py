@@ -46,7 +46,12 @@ def pil_vehicle():
 
 @routes_bp.route('/pil-visitor')
 def pil_visitor():
-    return render_template('pil visitor slip.html')
+    user = session.get('user', {})
+    return render_template(
+        'pil visitor slip.html',
+        user=user,
+        user_location=user.get('location', '')
+    )
 
 
 @routes_bp.route('/government-visitor')

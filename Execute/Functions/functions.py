@@ -1,330 +1,285 @@
-from flask import request, jsonify
+from flask import request, jsonify, session
 from Execute import queries
-from flask import request, session
-from Execute.executesql import get_connection
 
-#------------start Patrolling Observation Register-----------------
-#------------create------------------
+# =====================================================
+# COMMON RESPONSE HELPERS (IMPORTANT)
+# =====================================================
+def success_response(message="", data=None, status=200):
+    res = {"success": True, "message": message}
+    if data is not None:
+        res["data"] = data
+    return jsonify(res), status
+
+
+def error_response(message="Something went wrong", status=400):
+    return jsonify({"success": False, "message": message}), status
+
+
+# =====================================================
+# PATROLLING OBSERVATION REGISTER
+# =====================================================
 def save_patrolling_data_fn():
     try:
         data = request.get_json()
-
         if not data:
-            return jsonify({
-                "success": False,
-                "message": "No data received"
-            }), 400
+            return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
         success, msg = queries.save_patrolling_data(data, username)
 
-
-        return jsonify({
-            "success": success,
-            "message": msg
-        }), 200 if success else 500
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+        return error_response(str(e), 500)
 
-#-----------------read-----------------
+
 def get_patrolling_data():
-    success, data = queries.get_patrolling_data()
-    return jsonify({
-        "success": success,
-        "data": data
-    })
+    try:
+        success, data = queries.get_patrolling_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
 
-#----------------edit------------------
+
 def update_patrolling_data():
-    from flask import request, jsonify
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response("No data received")
 
-    username = session.get("user", {}).get("email", "system")
-    success, msg = queries.update_patrolling_data(data, username)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_patrolling_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
-
-#----------------delete-------------
 def delete_patrolling_data():
-    from flask import request, jsonify
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
 
-    if not data or "n_sr_no" not in data:
-        return jsonify({
-            "success": False,
-            "message": "Invalid delete request"
-        }), 400
+        success, msg = queries.delete_patrolling_data(data)
+        return success_response(msg) if success else error_response(msg)
 
-    success, msg = queries.delete_patrolling_data(data)
-
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ------------ START BBA Test Record Register -----------------
-# ----------- CREATE ----------------
+# =====================================================
+# BBA TEST RECORD REGISTER
+# =====================================================
 def save_bba_test_data_fn():
     try:
         data = request.get_json()
-
         if not data:
-            return jsonify({"success": False, "message": "No data received"}), 400
+            return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
         success, msg = queries.save_bba_test_data(data, username)
 
-
-        return jsonify({"success": success, "message": msg})
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return error_response(str(e), 500)
 
 
-# ----------- READ -----------------
 def get_bba_test_data():
-    success, data = queries.get_bba_test_data()
-    return jsonify({"success": success, "data": data})
+    try:
+        success, data = queries.get_bba_test_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ----------- UPDATE ----------------
 def update_bba_test_data():
-    data = request.get_json()
-    username = session.get("user", {}).get("email", "system")
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response("No data received")
 
-    success, msg = queries.update_bba_test_data(data, username)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_bba_test_data(data, username)
 
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ----------- DELETE ----------------
 def delete_bba_test_data():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
 
-    if not data or "n_sr_no" not in data:
-        return jsonify({"success": False, "message": "Invalid delete request"}), 400
+        success, msg = queries.delete_bba_test_data(data)
+        return success_response(msg) if success else error_response(msg)
 
-    success, msg = queries.delete_bba_test_data(data)
+    except Exception as e:
+        return error_response(str(e), 500)
 
-    return jsonify({"success": success, "message": msg})
 
-# ------------ START PIPELINE MITRA REGISTER -----------------
-# ------------ CREATE -----------------
+# =====================================================
+# PIPELINE MITRA REGISTER
+# =====================================================
 def save_pipeline_mitra_data_fn():
     try:
         data = request.get_json()
-
         if not data:
-            return jsonify({
-                "success": False,
-                "message": "No data received"
-            }), 400
+            return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-
         success, msg = queries.save_pipeline_mitra_data(data, username)
 
-        return jsonify({
-            "success": success,
-            "message": msg
-        })
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+        return error_response(str(e), 500)
 
 
-# ------------ READ -----------------
 def get_pipeline_mitra_data():
-    success, data = queries.get_pipeline_mitra_data()
+    try:
+        success, data = queries.get_pipeline_mitra_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
 
-    return jsonify({
-        "success": success,
-        "data": data
-    })
 
-
-# ------------ UPDATE -----------------
 def update_pipeline_mitra_data():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response("No data received")
 
-    username = session.get("user", {}).get("email", "system")
-    success, msg = queries.update_pipeline_mitra_data(data, username)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_pipeline_mitra_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
-
-
-# ------------ DELETE -----------------
 def delete_pipeline_mitra_data():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
 
-    if not data or "n_sr_no" not in data:
-        return jsonify({
-            "success": False,
-            "message": "Invalid delete request"
-        }), 400
+        success, msg = queries.delete_pipeline_mitra_data(data)
+        return success_response(msg) if success else error_response(msg)
 
-    success, msg = queries.delete_pipeline_mitra_data(data)
+    except Exception as e:
+        return error_response(str(e), 500)
 
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
 
-#-------------- vehicle checklist ---------------
-# ------------ CREATE -----------------
+# =====================================================
+# VEHICLE CHECKLIST
+# =====================================================
 def save_vehicle_data_fn():
     try:
         data = request.get_json()
-        username = session.get("user", {}).get("email", "system")
-
         if not data:
-            return jsonify({"success": False, "message": "No data received"}), 400
+            return error_response("No data received")
 
+        username = session.get("user", {}).get("email", "system")
         success, msg = queries.save_vehicle_data(data, username)
 
-        return jsonify({
-            "success": success,
-            "message": msg
-        }), 200 if success else 500
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return error_response(str(e), 500)
 
 
-# ------------ READ -----------------
 def get_vehicle_data():
-    success, data = queries.get_vehicle_data()
-    return jsonify({
-        "success": success,
-        "data": data
-    })
+    try:
+        success, data = queries.get_vehicle_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ------------ UPDATE -----------------
 def update_vehicle_data():
     try:
         data = request.get_json()
-        username = session.get("user", {}).get("email", "system")
+        if not data:
+            return error_response("No data received")
 
+        username = session.get("user", {}).get("email", "system")
         success, msg = queries.update_vehicle_data(data, username)
 
-        return jsonify({
-            "success": success,
-            "message": msg
-        })
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return error_response(str(e), 500)
 
 
-# ------------ DELETE -----------------
 def delete_vehicle_data():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
 
-    if not data or "n_sr_no" not in data:
-        return jsonify({
-            "success": False,
-            "message": "Invalid delete request"
-        }), 400
+        success, msg = queries.delete_vehicle_data(data)
+        return success_response(msg) if success else error_response(msg)
 
-    success, msg = queries.delete_vehicle_data(data)
+    except Exception as e:
+        return error_response(str(e), 500)
 
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
 
-#-------------- visitor start------------
-# ------------ CREATE -----------------
+# =====================================================
+# VISITOR REGISTER
+# =====================================================
 def save_visitor_data_fn():
     try:
         data = request.get_json()
-
         if not data:
-            return jsonify({
-                "success": False,
-                "message": "No data received"
-            }), 400
+            return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-
         success, msg = queries.save_visitor_data(data, username)
 
-        return jsonify({
-            "success": success,
-            "message": msg
-        }), 200 if success else 500
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+        return error_response(str(e), 500)
 
 
-# ------------ READ -----------------
 def get_visitor_data():
     try:
         success, data = queries.get_visitor_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
 
-        return jsonify({
-            "success": success,
-            "data": data
-        }), 200
+
+def update_visitor_data():
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response("No data received")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_visitor_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
-        print("❌ VISITOR GET ERROR (functions):", e)
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+        return error_response(str(e), 500)
 
 
-# ------------ UPDATE -----------------
-def update_visitor_data():
-    data = request.get_json()
-    username = session.get("user", {}).get("email", "system")
-
-    success, msg = queries.update_visitor_data(data, username)
-
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
-
-
-# ------------ DELETE -----------------
 def delete_visitor_data():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
 
-    if not data or "n_sr_no" not in data:
-        return jsonify({
-            "success": False,
-            "message": "Invalid delete request"
-        }), 400
+        success, msg = queries.delete_visitor_data(data)
+        return success_response(msg) if success else error_response(msg)
 
-    success, msg = queries.delete_visitor_data(data)
-
-    return jsonify({
-        "success": success,
-        "message": msg
-    })
+    except Exception as e:
+        return error_response(str(e), 500)

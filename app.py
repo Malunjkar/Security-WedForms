@@ -15,7 +15,7 @@ def create_app():
 
         session['user'].update({
             "email": email,
-            "name": "PIL Security CS01",
+            "name": "PIL Security",
             "location": location
         })
 

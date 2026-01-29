@@ -198,3 +198,67 @@ def delete_pipeline_mitra_data():
         "success": success,
         "message": msg
     })
+
+#-------------- vehicle checklist ---------------
+# ------------ CREATE -----------------
+def save_vehicle_data_fn():
+    try:
+        data = request.get_json()
+        username = session.get("user", {}).get("email", "system")
+
+        if not data:
+            return jsonify({"success": False, "message": "No data received"}), 400
+
+        success, msg = queries.save_vehicle_data(data, username)
+
+        return jsonify({
+            "success": success,
+            "message": msg
+        }), 200 if success else 500
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+# ------------ READ -----------------
+def get_vehicle_data():
+    success, data = queries.get_vehicle_data()
+    return jsonify({
+        "success": success,
+        "data": data
+    })
+
+
+# ------------ UPDATE -----------------
+def update_vehicle_data():
+    try:
+        data = request.get_json()
+        username = session.get("user", {}).get("email", "system")
+
+        success, msg = queries.update_vehicle_data(data, username)
+
+        return jsonify({
+            "success": success,
+            "message": msg
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+# ------------ DELETE -----------------
+def delete_vehicle_data():
+    data = request.get_json()
+
+    if not data or "n_sr_no" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Invalid delete request"
+        }), 400
+
+    success, msg = queries.delete_vehicle_data(data)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })

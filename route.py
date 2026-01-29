@@ -32,7 +32,12 @@ def pil_mitras():
 
 @routes_bp.route('/pil-vehicle')
 def pil_vehicle():
-    return render_template('pil vehicle checklist.html')
+    user = session.get('user', {})
+    return render_template(
+        'pil vehicle checklist.html',
+        user=user,                   
+        user_location=user.get('location', '')
+    )
 
 
 @routes_bp.route('/pil-visitor')
@@ -71,4 +76,10 @@ routes_bp.add_url_rule('/save_pipeline_mitra_data',view_func=functions.save_pipe
 routes_bp.add_url_rule('/get_pipeline_mitra_data',view_func=functions.get_pipeline_mitra_data,methods=['GET'])
 routes_bp.add_url_rule('/update_pipeline_mitra_data',view_func=functions.update_pipeline_mitra_data,methods=['POST'])
 routes_bp.add_url_rule('/delete_pipeline_mitra_data',view_func=functions.delete_pipeline_mitra_data,methods=['POST'])
+
+# ------------ start Vehicle Checklist -----------------
+routes_bp.add_url_rule('/save_vehicle_data',view_func=functions.save_vehicle_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_vehicle_data',view_func=functions.get_vehicle_data,methods=['GET'])
+routes_bp.add_url_rule('/update_vehicle_data',view_func=functions.update_vehicle_data,methods=['POST'])
+routes_bp.add_url_rule('/delete_vehicle_data',view_func=functions.delete_vehicle_data,methods=['POST'])
 

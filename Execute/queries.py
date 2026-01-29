@@ -1,4 +1,6 @@
 from Execute.executesql import get_connection
+from datetime import datetime
+
 
 #------------start Patrolling Observation Register-----------------
 def save_patrolling_data(data, username="system"):
@@ -548,4 +550,183 @@ def delete_pipeline_mitra_data(data):
     except Exception as e:
         return False, str(e)
 
+
+#------------- vehicle checklist start -------------
+# ------------ CREATE -----------------
+def save_vehicle_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT ISNULL(MAX(n_sr_no),0)+1 FROM dbo.VEHICLE_CHECK_LIST"
+        )
+        next_sr_no = cursor.fetchone()[0]
+
+        # ✅ FIX datetime-local format
+        entry_dt = data.get("dt_entry_datetime")
+        if entry_dt:
+            entry_dt = datetime.strptime(entry_dt, "%Y-%m-%dT%H:%M")
+
+        insert_vehicle_record(
+            cursor,
+            data,
+            next_sr_no,
+            username,
+            entry_dt
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Vehicle record saved successfully"
+
+    except Exception as e:
+        print("SAVE VEHICLE ERROR:", e)   # 🔥 IMPORTANT
+        return False, str(e)
+
+
+def insert_vehicle_record(cursor, data, n_sr_no, username, entry_dt):
+    sql = """
+    INSERT INTO dbo.VEHICLE_CHECK_LIST
+    (
+        n_sr_no,
+        s_location_code,
+        dt_entry_datetime,
+        s_vehicle_no,
+        s_vehicle_type,
+        s_driver_name,
+        s_contact_no,
+        s_purpose_of_entry,
+        s_created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    cursor.execute(sql, (
+        n_sr_no,
+        data.get("s_location_code"),
+        entry_dt,
+        data.get("s_vehicle_no"),
+        data.get("s_vehicle_type"),
+        data.get("s_driver_name"),
+        data.get("s_contact_no"),
+        data.get("s_purpose_of_entry"),
+        username
+    ))
+
+
+
+# ------------ READ -----------------
+def get_vehicle_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_sr_no,
+                s_location_code,
+                dt_entry_datetime,
+                s_vehicle_no,
+                s_vehicle_type,
+                s_driver_name,
+                s_contact_no,
+                s_purpose_of_entry
+            FROM dbo.VEHICLE_CHECK_LIST
+            ORDER BY n_sr_no DESC
+        """)
+
+        rows = cursor.fetchall()
+        result = []
+
+        for r in rows:
+            result.append({
+                "n_sr_no": r[0],
+                "s_location_code": r[1],
+                "dt_entry_datetime": str(r[2]),
+                "s_vehicle_no": r[3],
+                "s_vehicle_type": r[4],
+                "s_driver_name": r[5],
+                "s_contact_no": r[6],
+                "s_purpose_of_entry": r[7]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ UPDATE -----------------
+def update_vehicle_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        entry_dt = data.get("dt_entry_datetime")
+        if entry_dt:
+            entry_dt = datetime.strptime(entry_dt, "%Y-%m-%dT%H:%M")
+
+        sql = """
+        UPDATE dbo.VEHICLE_CHECK_LIST
+        SET
+            s_location_code = ?,
+            dt_entry_datetime = ?,
+            s_vehicle_no = ?,
+            s_vehicle_type = ?,
+            s_driver_name = ?,
+            s_contact_no = ?,
+            s_purpose_of_entry = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data["s_location_code"],
+            entry_dt,                   
+            data["s_vehicle_no"],
+            data["s_vehicle_type"],
+            data["s_driver_name"],
+            data["s_contact_no"],
+            data["s_purpose_of_entry"],
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Vehicle record updated successfully"
+
+    except Exception as e:
+        print("UPDATE VEHICLE ERROR:", e)
+        return False, str(e)
+
+
+# ------------ DELETE -----------------
+def delete_vehicle_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "DELETE FROM dbo.VEHICLE_CHECK_LIST WHERE n_sr_no = ?",
+            (data["n_sr_no"],)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Vehicle record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
 

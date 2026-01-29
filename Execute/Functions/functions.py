@@ -3,31 +3,6 @@ from Execute import queries
 from flask import request, session
 from Execute.executesql import get_connection
 
-def save_patrolling_data_fn():
-    created_by = session['user']['email']
-
-    data = request.json
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO PatrollingRegister (location, date, remarks, created_by)
-        VALUES (?, ?, ?, ?)
-    """, (
-        data['location'],
-        data['date'],
-        data['remarks'],
-        created_by
-    ))
-
-    conn.commit()
-    conn.close()
-
-    return {"status": "success"}
-
-
-
 #------------start Patrolling Observation Register-----------------
 #------------create------------------
 def save_patrolling_data_fn():
@@ -40,7 +15,9 @@ def save_patrolling_data_fn():
                 "message": "No data received"
             }), 400
 
-        success, msg = queries.save_patrolling_data(data)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.save_patrolling_data(data, username)
+
 
         return jsonify({
             "success": success,
@@ -66,7 +43,9 @@ def update_patrolling_data():
     from flask import request, jsonify
     data = request.get_json()
 
-    success, msg = queries.update_patrolling_data(data)
+    username = session.get("user", {}).get("email", "system")
+    success, msg = queries.update_patrolling_data(data, username)
+
 
     return jsonify({
         "success": success,
@@ -101,7 +80,9 @@ def save_bba_test_data_fn():
         if not data:
             return jsonify({"success": False, "message": "No data received"}), 400
 
-        success, msg = queries.save_bba_test_data(data)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.save_bba_test_data(data, username)
+
 
         return jsonify({"success": success, "message": msg})
 
@@ -118,9 +99,14 @@ def get_bba_test_data():
 # ----------- UPDATE ----------------
 def update_bba_test_data():
     data = request.get_json()
-    success, msg = queries.update_bba_test_data(data)
+    username = session.get("user", {}).get("email", "system")
 
-    return jsonify({"success": success, "message": msg})
+    success, msg = queries.update_bba_test_data(data, username)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })
 
 
 # ----------- DELETE ----------------
@@ -146,7 +132,9 @@ def save_pipeline_mitra_data_fn():
                 "message": "No data received"
             }), 400
 
-        success, msg = queries.save_pipeline_mitra_data(data)
+        username = session.get("user", {}).get("email", "system")
+
+        success, msg = queries.save_pipeline_mitra_data(data, username)
 
         return jsonify({
             "success": success,
@@ -174,7 +162,9 @@ def get_pipeline_mitra_data():
 def update_pipeline_mitra_data():
     data = request.get_json()
 
-    success, msg = queries.update_pipeline_mitra_data(data)
+    username = session.get("user", {}).get("email", "system")
+    success, msg = queries.update_pipeline_mitra_data(data, username)
+
 
     return jsonify({
         "success": success,

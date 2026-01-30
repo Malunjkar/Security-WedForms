@@ -261,13 +261,15 @@ function downloadRow(btn) {
     };
   }
 
-  fetch("/download_vehicle_checklist_pdf", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  })
-    .then(res => res.blob())
-    .then(blob => {
+  $.ajax({
+    url: "/download_vehicle_checklist_pdf",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(data),
+    xhrFields: {
+      responseType: "blob"   // 🔥 important for PDF
+    },
+    success: function (blob) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -275,8 +277,13 @@ function downloadRow(btn) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-    });
+    },
+    error: function () {
+      alert("Error downloading PDF");
+    }
+  });
 }
+
 
 
 /* ================= START APP ================= */

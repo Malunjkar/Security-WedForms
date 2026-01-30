@@ -229,6 +229,35 @@ function visitorDeclarationApp() {
     }
   }
 
+  function downloadRow(btn) {
+  const row = btn.closest("tr");
+  let data = {};
+
+  if (row.dataset.id) {
+    data.n_sr_no = row.dataset.id;
+  }
+
+  $.ajax({
+    url: "/download_visitor_slip_pdf",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(data),
+    xhrFields: { responseType: "blob" },
+    success: function (blob) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Visitor_Slip.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    },
+    error: function () {
+      alert("Error downloading visitor slip");
+    }
+  });
+}
+
   /* ================= EXPOSE ================= */
 
   window.addRow = addRow;
@@ -238,6 +267,7 @@ function visitorDeclarationApp() {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
 
+  window.downloadRow = downloadRow;
   document.addEventListener("DOMContentLoaded", loadData);
 }
 

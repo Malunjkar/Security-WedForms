@@ -33,9 +33,18 @@ def fetch_visitor_from_db(n_sr_no):
     cursor.close()
     conn.close()
 
+    # ===================== CHANGE 1 START =====================
+    visit_dt = r[1]
+
+    formatted_date = visit_dt.strftime("%Y-%m-%d") if visit_dt else ""
+    formatted_time = visit_dt.strftime("%H:%M") if visit_dt else ""
+    # ===================== CHANGE 1 END =====================
+
     return {
         "location": r[0],
         "datetime": str(r[1]),
+        "date": formatted_date,   
+        "time": formatted_time,  
         "visitor": r[2],
         "pass_no": r[3],
         "meet": r[4]
@@ -75,7 +84,7 @@ def generate_visitor_slip_pdf(data):
 
     # ---------------- MAIN TEXT ----------------
     elements.append(Paragraph(
-        f"I {data.get('visitor','    ')} , Visitor pass No. {data.get('pass_no','')}",
+        f"I {data.get('visitor','    ')}, Visitor pass No. {data.get('pass_no','')}",
         styles["Normal"]
     ))
 
@@ -114,9 +123,18 @@ def generate_visitor_slip_pdf(data):
     elements.append(table)
     elements.append(Spacer(1, 20))
 
-    # ---------------- FOOTER ----------------
-    elements.append(Paragraph("Time: ____________", styles["Normal"]))
-    elements.append(Paragraph("Date: ____________", styles["Normal"]))
+    # =====================  START =====================
+    elements.append(Paragraph(
+        f"Time: {data.get('time','')}",
+        styles["Normal"]
+    ))
+
+    elements.append(Paragraph(
+        f"Date: {data.get('date','')}",
+        styles["Normal"]
+    ))
+    # ===================== END =====================
+
     elements.append(Spacer(1, 10))
 
     elements.append(Paragraph("Visitor Signature: ____________________", styles["Normal"]))

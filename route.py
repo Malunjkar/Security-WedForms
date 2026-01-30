@@ -3,6 +3,7 @@ from Execute.Functions import functions
 from flask import request, send_file
 from Execute.vehicle_checklist_export import generate_vehicle_checklist_excel
 from Execute.vehicle_checklist_pdf import generate_vehicle_checklist_pdf
+from Execute.visitor_slip_pdf import generate_visitor_slip_pdf
 
 routes_bp = Blueprint('routes_bp', __name__)
 
@@ -70,6 +71,17 @@ def download_vehicle_checklist_pdf():
         mimetype="application/pdf"
     )
 
+@routes_bp.route('/download_visitor_slip_pdf', methods=['POST'])
+def download_visitor_slip_pdf():
+    data = request.get_json()
+    output, filename = generate_visitor_slip_pdf(data)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/pdf"
+    )
 
 
 @routes_bp.route('/pil-visitor')

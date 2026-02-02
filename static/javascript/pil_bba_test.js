@@ -5,37 +5,80 @@ function bbaTestApp() {
   const rowsPerPage = 10;
 
   /* ================= IMAGE PREVIEW ================= */
-  function previewImage(input) {
-    const file = input.files[0];
-    if (!file) return;
+ function previewFile(input) {
+  const file = input.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
+  const reader = new FileReader();
 
-    reader.onload = function (e) {
-      input.dataset.base64 = e.target.result;
+  reader.onload = function (e) {
+    input.dataset.base64 = e.target.result;
+    input.dataset.type = file.type;
+    input.dataset.name = file.name;
 
-      const previewDiv = input.nextElementSibling;
-      previewDiv.innerHTML = `
-        <button type="button" onclick="showImage('${e.target.result}')">
-          View Document
-        </button>
-      `;
-    };
+    let previewDiv = input.closest("td").querySelector(".img-preview");
 
-    reader.readAsDataURL(file);
-  }
+    if (!previewDiv) {
+      previewDiv = document.createElement("div");
+      previewDiv.className = "img-preview";
+      input.closest("td").appendChild(previewDiv);
+    }
 
-  function showImage(base64) {
-    const imgWindow = window.open("");
-    imgWindow.document.write(`
+    previewDiv.innerHTML = `
+      <button type="button" onclick="openFromInput(this)">
+        View Document
+      </button>
+    `;
+  };
+
+  reader.readAsDataURL(file);
+}
+
+
+
+
+  function showFile(base64, type, name) {
+  const win = window.open("");
+
+  // IMAGE
+  if (type.startsWith("image/")) {
+    win.document.write(`
       <html>
-        <head><title>Attachment Preview</title></head>
+        <head><title>${name}</title></head>
         <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh;">
           <img src="${base64}" style="max-width:100%; max-height:100%;">
         </body>
       </html>
     `);
+    return;
   }
+
+  // PDF
+  if (type === "application/pdf") {
+    win.document.write(`
+      <html>
+        <head><title>${name}</title></head>
+        <body style="margin:0">
+          <iframe src="${base64}" style="width:100%; height:100vh; border:none;"></iframe>
+        </body>
+      </html>
+    `);
+    return;
+  }
+
+  // OTHER FILE TYPES → DOWNLOAD
+  win.document.write(`
+    <html>
+      <head><title>${name}</title></head>
+      <body style="display:flex; justify-content:center; align-items:center; height:100vh;">
+        <a href="${base64}" download="${name}" style="font-size:18px;">
+          Click here to download ${name}
+        </a>
+      </body>
+    </html>
+  `);
+}
+
 
   /* ================= HELPERS ================= */
   function cloneTemplate(id) {
@@ -49,6 +92,22 @@ function bbaTestApp() {
       row.querySelector(".sr-no").innerText = total - i;
     });
   }
+
+
+  function openFromInput(btn) {
+  const input = btn.closest("td").querySelector("input[type='file']");
+
+  if (!input || !input.dataset.base64) {
+    alert("No file attached");
+    return;
+  }
+
+  showFile(
+    input.dataset.base64,
+    input.dataset.type || "application/octet-stream",
+    input.dataset.name || "Attachment"
+  );
+}
 
   /* ================= ADD ROW ================= */
   function addRow() {
@@ -136,7 +195,8 @@ function bbaTestApp() {
     });
 
     row.children[9].innerHTML = `
-      <input type="file" accept="image/*" onchange="window.previewImage(this)">
+      <input type="file" onchange="window.previewFile(this)">
+
       <div class="img-preview"></div>
     `;
 
@@ -228,9 +288,12 @@ function bbaTestApp() {
 
       if (r.img_attachment) {
         row.children[9].innerHTML = `
-          <button onclick="showImage('${r.img_attachment}')">
-            View Document
-          </button>
+          <button onclick="showFile(
+  '${r.img_attachment}',
+  '${r.s_file_type || "application/pdf"}',
+  'Attachment'
+)">View Document</button>
+
         `;
       }
 
@@ -272,8 +335,9 @@ function bbaTestApp() {
   window.saveTable = saveTable;
   window.editRow = editRow;
   window.deleteRow = deleteRow;
-  window.previewImage = previewImage;
-  window.showImage = showImage;
+  window.previewFile = previewFile;
+window.showFile = showFile;
+
   window.nextPage = nextPage;
   window.prevPage = prevPage;
 

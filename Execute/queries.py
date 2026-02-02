@@ -1128,3 +1128,260 @@ def delete_visitor_data(data):
 
     except Exception as e:
         return False, str(e)
+
+
+# =====================================================
+# CASUAL LABOUR REGISTER
+# =====================================================
+
+def save_casual_labour_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        master = data["master"]
+        labours = data["labours"]
+
+        work_dt = datetime.strptime(
+            master["dt_work_datetime"], "%Y-%m-%dT%H:%M"
+        )
+
+        # ---- INSERT MASTER ----
+        cursor.execute("""
+            INSERT INTO dbo.CASUAL_LABOUR_LIST_MASTER
+            (
+                s_location,
+                s_contractor_name,
+                s_nature_of_work,
+                s_place_of_work,
+                dt_work_datetime,
+                s_created_by,
+                n_flag
+            )
+            OUTPUT INSERTED.n_sl_no
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        """, (
+            master["s_location"],
+            master["s_contractor_name"],
+            master["s_nature_of_work"],
+            master["s_place_of_work"],
+            work_dt,
+            username
+        ))
+
+        n_sl_no = cursor.fetchone()[0]
+
+        # ---- INSERT CHILD ----
+        for row in labours:
+            cursor.execute("""
+                INSERT INTO dbo.CASUAL_LABOUR_LIST
+                (
+                    n_sl_no,
+                    s_labour_name,
+                    n_age,
+                    s_sex,
+                    s_address,
+                    s_temp_access_card_no,
+                    s_mobile_no,
+                    s_id_type,
+                    s_govt_id_no,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            """, (
+                n_sl_no,
+                row["s_labour_name"],
+                row["n_age"],
+                row["s_sex"],
+                row["s_address"],
+                row["s_temp_access_card_no"],
+                row["s_mobile_no"],
+                row["s_id_type"],
+                row["s_govt_id_no"],
+                username
+            ))
+
+        conn.commit()
+        return True, "Casual labour record saved successfully"
+
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)
+
+def get_casual_labour_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                m.n_sl_no,
+                m.s_location,
+                m.s_contractor_name,
+                m.s_nature_of_work,
+                m.s_place_of_work,
+                m.dt_work_datetime
+            FROM dbo.CASUAL_LABOUR_LIST_MASTER m
+            WHERE m.n_flag = 1
+            ORDER BY m.n_sl_no DESC
+        """)
+
+        masters = cursor.fetchall()
+        result = []
+
+        for m in masters:
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_labour_name,
+                    n_age,
+                    s_sex,
+                    s_address,
+                    s_temp_access_card_no,
+                    s_mobile_no,
+                    s_id_type,
+                    s_govt_id_no
+                FROM dbo.CASUAL_LABOUR_LIST
+                WHERE n_sl_no = ? AND n_flag = 1
+            """, (m[0],))
+
+            labours = cursor.fetchall()
+
+            result.append({
+                "n_sl_no": m[0],
+                "s_location": m[1],
+                "s_contractor_name": m[2],
+                "s_nature_of_work": m[3],
+                "s_place_of_work": m[4],
+                "dt_work_datetime": str(m[5]),
+                "labours": [
+                    {
+                        "n_sr_no": l[0],
+                        "s_labour_name": l[1],
+                        "n_age": l[2],
+                        "s_sex": l[3],
+                        "s_address": l[4],
+                        "s_temp_access_card_no": l[5],
+                        "s_mobile_no": l[6],
+                        "s_id_type": l[7],
+                        "s_govt_id_no": l[8]
+                    } for l in labours
+                ]
+            })
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
+def update_casual_labour_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        master = data["master"]
+        labours = data["labours"]
+
+        work_dt = datetime.strptime(
+            master["dt_work_datetime"], "%Y-%m-%dT%H:%M"
+        )
+
+        # ---- UPDATE MASTER ----
+        cursor.execute("""
+            UPDATE dbo.CASUAL_LABOUR_LIST_MASTER
+            SET
+                s_location = ?,
+                s_contractor_name = ?,
+                s_nature_of_work = ?,
+                s_place_of_work = ?,
+                dt_work_datetime = ?,
+                dt_updated_at = GETDATE(),
+                s_updated_by = ?
+            WHERE n_sl_no = ?
+        """, (
+            master["s_location"],
+            master["s_contractor_name"],
+            master["s_nature_of_work"],
+            master["s_place_of_work"],
+            work_dt,
+            username,
+            master["n_sl_no"]
+        ))
+
+        # ---- SOFT DELETE OLD CHILD ----
+        cursor.execute("""
+            UPDATE dbo.CASUAL_LABOUR_LIST
+            SET n_flag = 0
+            WHERE n_sl_no = ?
+        """, (master["n_sl_no"],))
+
+        # ---- INSERT NEW CHILD ----
+        for row in labours:
+            cursor.execute("""
+                INSERT INTO dbo.CASUAL_LABOUR_LIST
+                (
+                    n_sl_no,
+                    s_labour_name,
+                    n_age,
+                    s_sex,
+                    s_address,
+                    s_temp_access_card_no,
+                    s_mobile_no,
+                    s_id_type,
+                    s_govt_id_no,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            """, (
+                master["n_sl_no"],
+                row["s_labour_name"],
+                row["n_age"],
+                row["s_sex"],
+                row["s_address"],
+                row["s_temp_access_card_no"],
+                row["s_mobile_no"],
+                row["s_id_type"],
+                row["s_govt_id_no"],
+                username
+            ))
+
+        conn.commit()
+        return True, "Casual labour record updated successfully"
+
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)
+
+def delete_casual_labour_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        n_sl_no = data["n_sl_no"]
+
+        cursor.execute("""
+            UPDATE dbo.CASUAL_LABOUR_LIST_MASTER
+            SET
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_sl_no = ?
+        """, (username, n_sl_no))
+
+        cursor.execute("""
+            UPDATE dbo.CASUAL_LABOUR_LIST
+            SET
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_sl_no = ?
+        """, (username, n_sl_no))
+
+        conn.commit()
+        return True, "Casual labour record deleted successfully"
+
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)

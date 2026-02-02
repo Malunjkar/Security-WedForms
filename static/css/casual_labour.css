@@ -1,0 +1,81 @@
+/* ================= BASE ================= */
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f2f4f8;
+}
+
+/* ================= HEADER ================= */
+.header-dashboard {
+  height: 60px;
+  background: #002244;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.logo-dashboard {
+  height: 40px;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* ================= TABLE ================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #1f3a5f;
+  color: #fff;
+}
+
+/* ================= FORM ================= */
+.form-box {
+  display: none;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input, select {
+  padding: 7px;
+  width: 100%;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add { background: #1976d2; color: #fff; }
+.btn-save { background: #2e7d32; color: #fff; }
+.secondary { background: #6c757d; color: #fff; }
+.danger { background: #dc3545; color: #fff; }

@@ -283,3 +283,57 @@ def delete_visitor_data():
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
+
+
+# =====================================================
+# CASUAL LABOUR REGISTER
+# =====================================================
+
+def save_casual_labour_data_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return error_response("No data received")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.save_casual_labour_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def get_casual_labour_data_fn():
+    try:
+        success, data = queries.get_casual_labour_data()
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def update_casual_labour_data_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return error_response("No data received")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_casual_labour_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def delete_casual_labour_data_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data or "n_sl_no" not in data:
+            return error_response("Invalid delete request")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.delete_casual_labour_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+    except Exception as e:
+        return error_response(str(e), 500)

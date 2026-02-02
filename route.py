@@ -143,3 +143,9 @@ routes_bp.add_url_rule('/get_visitor_data',view_func=functions.get_visitor_data,
 routes_bp.add_url_rule('/update_visitor_data',view_func=functions.update_visitor_data,methods=['POST'])
 routes_bp.add_url_rule('/delete_visitor_data',view_func=functions.delete_visitor_data,methods=['POST'])
 
+
+# ------------ CASUAL LABOUR REGISTER -----------------
+routes_bp.add_url_rule('/save_casual_labour_data',view_func=functions.save_casual_labour_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_casual_labour_data',view_func=functions.get_casual_labour_data_fn,methods=['GET'])
+routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_casual_labour_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])

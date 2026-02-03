@@ -138,11 +138,10 @@ routes_bp.add_url_rule('/update_vehicle_data',view_func=functions.update_vehicle
 routes_bp.add_url_rule('/delete_vehicle_data',view_func=functions.delete_vehicle_data,methods=['POST'])
 
 # ------------ VISITOR DECLARATION SLIP -----------------
-routes_bp.add_url_rule('/save_visitor_data',view_func=functions.save_visitor_data_fn,methods=['POST'])
-routes_bp.add_url_rule('/get_visitor_data',view_func=functions.get_visitor_data,methods=['GET'])
-routes_bp.add_url_rule('/update_visitor_data',view_func=functions.update_visitor_data,methods=['POST'])
-routes_bp.add_url_rule('/delete_visitor_data',view_func=functions.delete_visitor_data,methods=['POST'])
-
+routes_bp.add_url_rule('/save_visitor_declaration_data',view_func=functions.save_visitor_declaration_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_visitor_declaration_data',view_func=functions.get_visitor_declaration_data_fn,methods=['GET'])
+routes_bp.add_url_rule('/update_visitor_declaration_data',view_func=functions.update_visitor_declaration_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/delete_visitor_declaration_data',view_func=functions.delete_visitor_declaration_data_fn,methods=['POST'])
 
 # ------------ CASUAL LABOUR REGISTER -----------------
 routes_bp.add_url_rule('/save_casual_labour_data',view_func=functions.save_casual_labour_data_fn,methods=['POST'])

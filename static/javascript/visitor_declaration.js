@@ -1,275 +1,158 @@
 function visitorDeclarationApp() {
 
   let allData = [];
-  let currentPage = 1;
-  const rowsPerPage = 10;
+  let items = [];
+  let isEdit = false;
+  let editId = null;
 
-  /* ================= HELPERS ================= */
-
-  function cloneTemplate(id) {
-    return document.getElementById(id).content.cloneNode(true);
-  }
-
-  function updateSerialNumbers() {
-    const rows = document.querySelectorAll("#visitorTable tbody tr");
-    const total = rows.length;
-    rows.forEach((row, i) => {
-      row.querySelector(".sr-no").innerText = total - i;
+  /* ============ LOAD ============ */
+  function loadData() {
+    $.get("/get_visitor_declaration_data", res => {
+      if (!res.success) return;
+      allData = res.data;
+      renderTable();
     });
   }
 
-  function getCellValue(td) {
-    const input = td.querySelector("input");
-    return input ? input.value : td.innerText.trim();
+  /* ============ RENDER MASTER ============ */
+  function renderTable() {
+    const tbody = $("#masterTable tbody");
+    tbody.empty();
+
+    allData.forEach(r => {
+      const tr = $(`
+        <tr>
+          <td>${r.s_location}</td>
+          <td>${r.s_visitor_name}</td>
+          <td>${r.s_visitor_pass_no}</td>
+          <td>${r.dt_visit_datetime}</td>
+          <td>
+            <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
+            <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
+          </td>
+        </tr>
+      `);
+
+      tr.data("record", r);
+      tbody.append(tr);
+    });
   }
 
-  /* ================= ADD ================= */
+  /* ============ VIEW SWITCH ============ */
+  window.openAddForm = () => {
+    isEdit = false;
+    editId = null;
+    items = [];
+    $("#listView").hide();
+    $("#step1").show();
+  };
 
-  function addRow() {
-    const tbody = document.querySelector("#visitorTable tbody");
-    const row = cloneTemplate("addRowTemplate").querySelector("tr");
+  window.nextStep = () => { $("#step1").hide(); $("#step2").show(); };
+  window.backStep = () => { $("#step2").hide(); $("#step1").show(); };
+  window.cancel = () => location.reload();
 
-    row.dataset.new = "true";
-    row.querySelector(".location").innerText = USER_LOCATION;
+  /* ============ EDIT ============ */
+  $("#masterTable").on("click", ".edit", function () {
+    const r = $(this).closest("tr").data("record");
 
-    tbody.prepend(row);
-    updateSerialNumbers();
+    isEdit = true;
+    editId = r.n_sl_no;
+
+    $("#listView").hide();
+    $("#step1").show();
+
+    $("#s_location").val(r.s_location);
+    $("#s_visitor_name").val(r.s_visitor_name);
+    $("#s_visitor_pass_no").val(r.s_visitor_pass_no);
+    $("#s_whom_to_meet").val(r.s_whom_to_meet);
+    $("#dt_visit_datetime").val(r.dt_visit_datetime.replace(" ", "T"));
+
+    items = r.items || [];
+    renderItems();
+  });
+
+  /* ============ ITEMS ============ */
+  window.addItem = () => {
+    items.push({
+      s_item_code_description: $("#item_desc").val(),
+      s_uom: $("#item_uom").val(),
+      n_quantity: $("#item_qty").val()
+    });
+    renderItems();
+    $("#item_desc,#item_uom,#item_qty").val("");
+  };
+
+  function renderItems() {
+    const tbody = $("#itemTable tbody");
+    tbody.empty();
+
+    items.forEach((i, idx) => {
+      tbody.append(`
+        <tr>
+          <td>${i.s_item_code_description}</td>
+          <td>${i.s_uom}</td>
+          <td>${i.n_quantity}</td>
+          <td><button class="danger" onclick="removeItem(${idx})">X</button></td>
+        </tr>
+      `);
+    });
   }
 
-  /* ================= DELETE ================= */
+  window.removeItem = i => {
+    items.splice(i, 1);
+    renderItems();
+  };
 
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
+  /* ============ SAVE ============ */
+  window.saveData = () => {
+    const payload = {
+      master: {
+        n_sl_no: editId,
+        s_location: $("#s_location").val(),
+        s_visitor_name: $("#s_visitor_name").val(),
+        s_visitor_pass_no: $("#s_visitor_pass_no").val(),
+        s_whom_to_meet: $("#s_whom_to_meet").val(),
+        dt_visit_datetime: $("#dt_visit_datetime").val()
+      },
+      items
+    };
 
-    if (row.dataset.new === "true") {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
+    const url = isEdit
+      ? "/update_visitor_declaration_data"
+      : "/save_visitor_declaration_data";
 
+    if (!confirm(isEdit ? "Update record?" : "Save record?")) return;
+
+    $.ajax({
+      url,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: r => {
+        alert(r.message);
+        location.reload();
+      }
+    });
+  };
+
+  /* ============ DELETE ============ */
+  $("#masterTable").on("click", ".delete", function () {
+    const r = $(this).closest("tr").data("record");
     if (!confirm("Delete this record?")) return;
 
     $.ajax({
-      url: "/delete_visitor_data",
-      type: "POST",
+      url: "/delete_visitor_declaration_data",
+      method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({
-        n_sr_no: row.dataset.id
-      }),
-      success: function (res) {
-        if (res.success) {
-          row.remove();
-          updateSerialNumbers();
-        } else {
-          alert(res.message || "Delete failed");
-        }
-      },
-      error: function () {
-        alert("Server error while deleting");
-      }
-    });
-  }
-
-  /* ================= EDIT ================= */
-
-  function editRow(btn) {
-    const row = btn.closest("tr");
-    row.dataset.edited = "true";
-
-    row.children[1].innerText = USER_LOCATION;
-
-    const fields = [
-      { cls: ".dt", type: "datetime-local" },
-      { cls: ".vname", type: "text" },
-      { cls: ".vpass", type: "text" },
-      { cls: ".meet", type: "text" }
-    ];
-
-    fields.forEach((f, i) => {
-      const td = row.children[2 + i];
-      let val = row.querySelector(f.cls).innerText;
-
-      if (f.type === "datetime-local" && val) {
-        val = val.replace(" ", "T").substring(0, 16);
-      }
-
-      td.innerHTML = "";
-      const input = document.createElement("input");
-      input.type = f.type;
-      input.value = val;
-      td.appendChild(input);
-    });
-
-    btn.disabled = true;
-    btn.innerText = "Editing";
-  }
-
-  /* ================= SAVE ================= */
-
-  function saveTable() {
-    let ajaxCalls = [];
-
-    document.querySelectorAll("#visitorTable tbody tr").forEach(row => {
-      const td = row.children;
-
-      const payload = {
-        s_location_code: USER_LOCATION,
-        dt_visit_datetime: getCellValue(td[2]),
-        s_visitor_name: getCellValue(td[3]),
-        s_visitor_pass_no: getCellValue(td[4]),
-        s_whom_to_meet: getCellValue(td[5])
-      };
-
-      /* -------- CREATE -------- */
-      if (row.dataset.new === "true") {
-        ajaxCalls.push(
-          $.ajax({
-            url: "/save_visitor_data",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(payload)
-          })
-        );
-      }
-
-      /* -------- UPDATE -------- */
-      if (row.dataset.edited === "true" && row.dataset.id) {
-        payload.n_sr_no = row.dataset.id;
-
-        ajaxCalls.push(
-          $.ajax({
-            url: "/update_visitor_data",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(payload)
-          })
-        );
-      }
-    });
-
-    if (ajaxCalls.length === 0) {
-      alert("Nothing to save");
-      return;
-    }
-
-    $.when(...ajaxCalls)
-      .done(function () {
-        alert("Saved successfully");
+      data: JSON.stringify({ n_sl_no: r.n_sl_no }),
+      success: r => {
+        alert(r.message);
         loadData();
-      })
-      .fail(function () {
-        alert("Error while saving data");
-      });
-  }
-
-  /* ================= LOAD ================= */
-
-  function loadData() {
-    $.ajax({
-      url: "/get_visitor_data",
-      type: "GET",
-      success: function (res) {
-        if (!res.success) {
-          alert("Failed to load data");
-          return;
-        }
-
-        allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
-        currentPage = 1;
-        renderPage();
-      },
-      error: function () {
-        alert("Server error while loading");
       }
     });
-  }
-
-  function renderPage() {
-    const tbody = document.querySelector("#visitorTable tbody");
-    tbody.innerHTML = "";
-
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    allData.slice(start, end).forEach(r => {
-      const row = cloneTemplate("viewRowTemplate").querySelector("tr");
-      row.dataset.id = r.n_sr_no;
-
-      row.querySelector(".loc").innerText = r.s_location_code;
-      row.querySelector(".dt").innerText = r.dt_visit_datetime;
-      row.querySelector(".vname").innerText = r.s_visitor_name;
-      row.querySelector(".vpass").innerText = r.s_visitor_pass_no;
-      row.querySelector(".meet").innerText = r.s_whom_to_meet;
-
-      tbody.appendChild(row);
-    });
-
-    updateSerialNumbers();
-    updatePagination();
-  }
-
-  function updatePagination() {
-    const totalPages = Math.ceil(allData.length / rowsPerPage);
-    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages;
-  }
-
-  function nextPage() {
-    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
-      currentPage++;
-      renderPage();
-    }
-  }
-
-  function prevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      renderPage();
-    }
-  }
-
-  function downloadRow(btn) {
-  const row = btn.closest("tr");
-  let data = {};
-
-  if (row.dataset.id) {
-    data.n_sr_no = row.dataset.id;
-  }
-
-  $.ajax({
-    url: "/download_visitor_slip_pdf",
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(data),
-    xhrFields: { responseType: "blob" },
-    success: function (blob) {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "Visitor_Slip.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    },
-    error: function () {
-      alert("Error downloading visitor slip");
-    }
   });
+
+  loadData();
 }
 
-  /* ================= EXPOSE ================= */
-
-  window.addRow = addRow;
-  window.saveTable = saveTable;
-  window.editRow = editRow;
-  window.deleteRow = deleteRow;
-  window.nextPage = nextPage;
-  window.prevPage = prevPage;
-
-  window.downloadRow = downloadRow;
-  document.addEventListener("DOMContentLoaded", loadData);
-}
-
-/* ================= START ================= */
 visitorDeclarationApp();

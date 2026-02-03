@@ -1027,87 +1027,123 @@ def delete_vehicle_data(data):
 
 
 #------------- visitor start --------------
-# ------------ CREATE -----------------
-def save_visitor_data(data, username="system"):
+
+def save_visitor_declaration_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.VISITOR_DECLARATION_SLIP"
-        )
-        next_sr_no = cursor.fetchone()[0]
+        master = data["master"]
+        items = data["items"]
 
-        sql = """
-        INSERT INTO dbo.VISITOR_DECLARATION_SLIP
-        (
-            n_sr_no,
-            s_location_code,
-            dt_visit_datetime,
-            s_visitor_name,
-            s_visitor_pass_no,
-            s_whom_to_meet,
-            s_created_by
+        visit_dt = datetime.strptime(
+            master["dt_visit_datetime"], "%Y-%m-%dT%H:%M"
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """
 
-        cursor.execute(sql, (
-            next_sr_no,
-            data.get("s_location_code"),
-            data.get("dt_visit_datetime").replace("T", " "),
-            data.get("s_visitor_name"),
-            data.get("s_visitor_pass_no"),
-            data.get("s_whom_to_meet"),
+        # ---- INSERT MASTER ----
+        cursor.execute("""
+            INSERT INTO dbo.VISITOR_DECLARATION_SLIP_MASTER
+            (
+                s_location,
+                dt_visit_datetime,
+                s_visitor_name,
+                s_visitor_pass_no,
+                s_whom_to_meet,
+                s_created_by,
+                n_flag
+            )
+            OUTPUT INSERTED.n_sl_no
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        """, (
+            master["s_location"],
+            visit_dt,
+            master["s_visitor_name"],
+            master["s_visitor_pass_no"],
+            master["s_whom_to_meet"],
             username
         ))
 
+        n_sl_no = cursor.fetchone()[0]
+
+        # ---- INSERT CHILD ----
+        for row in items:
+            cursor.execute("""
+                INSERT INTO dbo.VISITOR_DECLARATION_SLIP
+                (
+                    n_sl_no,
+                    s_item_code_description,
+                    s_uom,
+                    n_quantity,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, 1)
+            """, (
+                n_sl_no,
+                row["s_item_code_description"],
+                row["s_uom"],
+                row["n_quantity"],
+                username
+            ))
 
         conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Visitor record saved successfully"
+        return True, "Visitor declaration record saved successfully"
 
     except Exception as e:
+        conn.rollback()
         return False, str(e)
 
 
-# ------------ READ -----------------
-def get_visitor_data():
+def get_visitor_declaration_data():
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
             SELECT
-                n_sr_no,
-                s_location_code,
+                n_sl_no,
+                s_location,
                 dt_visit_datetime,
                 s_visitor_name,
                 s_visitor_pass_no,
                 s_whom_to_meet
-            FROM dbo.VISITOR_DECLARATION_SLIP
-                       WHERE ISNULL(delete_flag,0) = 0
-
-            ORDER BY n_sr_no DESC
+            FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
+            WHERE n_flag = 1
+            ORDER BY n_sl_no DESC
         """)
 
-        rows = cursor.fetchall()
-
+        masters = cursor.fetchall()
         result = []
-        for r in rows:
-            result.append({
-                "n_sr_no": r[0],
-                "s_location_code": r[1],
-                "dt_visit_datetime": str(r[2]),
-                "s_visitor_name": r[3],
-                "s_visitor_pass_no": r[4],
-                "s_whom_to_meet": r[5]
-            })
 
-        cursor.close()
-        conn.close()
+        for m in masters:
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_item_code_description,
+                    s_uom,
+                    n_quantity
+                FROM dbo.VISITOR_DECLARATION_SLIP
+                WHERE n_sl_no = ? AND n_flag = 1
+            """, (m[0],))
+
+            items = cursor.fetchall()
+
+            result.append({
+                "n_sl_no": m[0],
+                "s_location": m[1],
+                "dt_visit_datetime": str(m[2]),
+                "s_visitor_name": m[3],
+                "s_visitor_pass_no": m[4],
+                "s_whom_to_meet": m[5],
+                "items": [
+                    {
+                        "n_sr_no": i[0],
+                        "s_item_code_description": i[1],
+                        "s_uom": i[2],
+                        "n_quantity": i[3]
+                    } for i in items
+                ]
+            })
 
         return True, result
 
@@ -1115,89 +1151,106 @@ def get_visitor_data():
         return False, str(e)
 
 
-# ------------ UPDATE -----------------
-def update_visitor_data(data, username="system"):
+def update_visitor_declaration_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        sql = """
-        UPDATE dbo.VISITOR_DECLARATION_SLIP
-        SET
-            s_location_code = ?,
-            dt_visit_datetime = ?,
-            s_visitor_name = ?,
-            s_visitor_pass_no = ?,
-            s_whom_to_meet = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
+        master = data["master"]
+        items = data["items"]
 
-        cursor.execute(sql, (
-            data.get("s_location_code"),
-            data.get("dt_visit_datetime").replace("T", " "),
-            data.get("s_visitor_name"),
-            data.get("s_visitor_pass_no"),
-            data.get("s_whom_to_meet"),
+        visit_dt = datetime.strptime(
+            master["dt_visit_datetime"], "%Y-%m-%dT%H:%M"
+        )
+
+        # ---- UPDATE MASTER ----
+        cursor.execute("""
+            UPDATE dbo.VISITOR_DECLARATION_SLIP_MASTER
+            SET
+                s_location = ?,
+                dt_visit_datetime = ?,
+                s_visitor_name = ?,
+                s_visitor_pass_no = ?,
+                s_whom_to_meet = ?,
+                dt_updated_at = GETDATE(),
+                s_updated_by = ?
+            WHERE n_sl_no = ?
+        """, (
+            master["s_location"],
+            visit_dt,
+            master["s_visitor_name"],
+            master["s_visitor_pass_no"],
+            master["s_whom_to_meet"],
             username,
-            data.get("n_sr_no")
+            master["n_sl_no"]
         ))
 
+        # ---- SOFT DELETE OLD CHILD ----
+        cursor.execute("""
+            UPDATE dbo.VISITOR_DECLARATION_SLIP
+            SET n_flag = 0
+            WHERE n_sl_no = ?
+        """, (master["n_sl_no"],))
+
+        # ---- INSERT NEW CHILD ----
+        for row in items:
+            cursor.execute("""
+                INSERT INTO dbo.VISITOR_DECLARATION_SLIP
+                (
+                    n_sl_no,
+                    s_item_code_description,
+                    s_uom,
+                    n_quantity,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, 1)
+            """, (
+                master["n_sl_no"],
+                row["s_item_code_description"],
+                row["s_uom"],
+                row["n_quantity"],
+                username
+            ))
 
         conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Visitor record updated successfully"
+        return True, "Visitor declaration record updated successfully"
 
     except Exception as e:
+        conn.rollback()
         return False, str(e)
 
 
-# ------------ DELETE -----------------
-def delete_visitor_data(data, username="system"):
+def delete_visitor_declaration_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
+        n_sl_no = data["n_sl_no"]
+
+        cursor.execute("""
+            UPDATE dbo.VISITOR_DECLARATION_SLIP_MASTER
+            SET
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_sl_no = ?
+        """, (username, n_sl_no))
 
         cursor.execute("""
             UPDATE dbo.VISITOR_DECLARATION_SLIP
             SET
-                delete_flag = 1,
-                deleted_on = GETDATE(),
-                deleted_by = ?
-            WHERE n_sr_no = ?
-        """, (
-            username,
-            data["n_sr_no"]
-        ))
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_sl_no = ?
+        """, (username, n_sl_no))
 
         conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Visitor record deleted successfully"
+        return True, "Visitor declaration record deleted successfully"
 
     except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "DELETE FROM dbo.VISITOR_DECLARATION_SLIP WHERE n_sr_no = ?",
-            (data.get("n_sr_no"),)
-        )
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Visitor record deleted successfully"
-
-    except Exception as e:
+        conn.rollback()
         return False, str(e)
 
 
@@ -1456,3 +1509,4 @@ def delete_casual_labour_data(data, username="system"):
     except Exception as e:
         conn.rollback()
         return False, str(e)
+

@@ -248,69 +248,54 @@ def delete_vehicle_data():
 # =====================================================
 # VISITOR REGISTER
 # =====================================================
-def save_visitor_data_fn():
+def save_visitor_declaration_data_fn():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         if not data:
             return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-        success, msg = queries.save_visitor_data(data, username)
+        success, msg = queries.save_visitor_declaration_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def get_visitor_data():
+def get_visitor_declaration_data_fn():
     try:
-        success, data = queries.get_visitor_data()
+        success, data = queries.get_visitor_declaration_data()
         return success_response(data=data) if success else error_response("Failed to fetch data")
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def update_visitor_data():
+def update_visitor_declaration_data_fn():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         if not data:
             return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-        success, msg = queries.update_visitor_data(data, username)
+        success, msg = queries.update_visitor_declaration_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def delete_visitor_data():
+def delete_visitor_declaration_data_fn():
     try:
-        data = request.get_json()
-        if not data or "n_sr_no" not in data:
+        data = request.get_json(force=True)
+        if not data or "n_sl_no" not in data:
             return error_response("Invalid delete request")
 
         username = session.get("user", {}).get("email", "system")
-        success, msg = queries.delete_visitor_data(data, username)
+        success, msg = queries.delete_visitor_declaration_data(data, username)
 
-        return success_response(msg) if success else error_response(msg)
-
-    except Exception as e:
-        return error_response(str(e), 500)
-
-    try:
-        data = request.get_json()
-        if not data or "n_sr_no" not in data:
-            return error_response("Invalid delete request")
-
-        # 🔥 ADD deleted_by
-        data["deleted_by"] = session.get("user", {}).get("email", "system")
-
-        success, msg = queries.delete_visitor_data(data)
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
-
 
 # =====================================================
 # CASUAL LABOUR REGISTER

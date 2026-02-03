@@ -181,28 +181,27 @@ function pipelineMitraApp() {
     };
 
     // ➕ INSERT
-    if (row.dataset.new) {
-     $.ajax({
-  url: "/api_url",
-  method: "POST",
-  contentType: "application/json",
-  data: JSON.stringify(payload)
-});
+   if (row.dataset.new) {
+  $.ajax({
+    url: "/save_pipeline_mitra_data",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload)
+  });
+}
 
-
-    }
-
-    // ✏️ UPDATE
-    if (row.dataset.edited && !row.dataset.new) {
-      payload.n_sr_no = row.dataset.id;
-     $.ajax({
-  url: "/api_url",
-  method: "POST",
-  contentType: "application/json",
-  data: JSON.stringify(payload)
-});
-
-    }
+    
+    
+// ✏️ UPDATE
+if (row.dataset.edited && !row.dataset.new) {
+  payload.n_sr_no = row.dataset.id;
+  $.ajax({
+    url: "/update_pipeline_mitra_data",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload)
+  });
+}
   });
 
   // ✅ Final success popup
@@ -220,28 +219,43 @@ function pipelineMitraApp() {
 
   /* ================= DELETE ================= */
 
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
+ function deleteRow(btn) {
+  const row = btn.closest("tr");
 
-    if (row.dataset.new) {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
-
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
+  // New row → frontend only
+  if (row.dataset.new) {
+    if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
     updateSerialNumbers();
-
-    $.ajax({
-  url: "/api_url",
-  method: "POST",
-  contentType: "application/json",
-  data: JSON.stringify(payload)
-});
-
+    return;
   }
+
+  // Existing row → DB delete
+  if (!confirm("Are you sure you want to delete this record?")) return;
+
+  $.ajax({
+    url: "/delete_pipeline_mitra_data",   // ✅ CORRECT API
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      n_sr_no: row.dataset.id             // ✅ REQUIRED
+    }),
+    success: res => {
+      if (res.success) {
+        row.remove();
+        updateSerialNumbers();
+        alert("Deleted successfully");
+      } else {
+        alert(res.message || "Delete failed");
+      }
+    },
+    error: err => {
+      console.error("Delete error:", err);
+      alert("Delete failed at server");
+    }
+  });
+}
+
 
   /* ================= EXPOSE ================= */
 

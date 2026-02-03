@@ -529,24 +529,19 @@ def update_bba_test_data(data, username="system"):
 
 
 # ----------- DELETE ----------------
-def delete_bba_test_data(data):
+def delete_bba_test_data(data, username):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        sql = """
-        UPDATE dbo.BAA_Test_Record_Register
-        SET
-            delete_flag = 1,
-            deleted_at = GETDATE(),
-            deleted_by = ?
-        WHERE n_sr_no = ?
-        """
-
-        cursor.execute(sql, (
-            data.get("deleted_by", "system"),
-            data["n_sr_no"]
-        ))
+        cursor.execute("""
+            UPDATE dbo.BAA_Test_Record_Register
+            SET
+                delete_flag = 1,
+                deleted_by = ?,
+                deleted_on = GETDATE()
+            WHERE n_sr_no = ?
+        """, (username, data["n_sr_no"]))
 
         conn.commit()
         cursor.close()
@@ -744,6 +739,31 @@ def update_pipeline_mitra_data(data, username="system"):
 
 # ------------ DELETE -----------------
 def delete_pipeline_mitra_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE dbo.PIPELINE_MITRA_REGISTER
+            SET
+                delete_flag = 1,
+                deleted_at = GETDATE(),
+                deleted_by = ?
+            WHERE n_sr_no = ?
+        """, (
+            data["deleted_by"],
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()

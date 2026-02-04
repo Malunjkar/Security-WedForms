@@ -1,290 +1,123 @@
 function vehicleChecklistApp() {
 
-  let allData = [];
-  let currentPage = 1;
-  const rowsPerPage = 10;
-
-  /* ================= HELPERS ================= */
-  function cloneTemplate(id) {
-    return document.getElementById(id).content.cloneNode(true);
-  }
-
-  function updateSerialNumbers() {
-    const rows = document.querySelectorAll("#vehicleTable tbody tr");
-    const total = rows.length;
-    rows.forEach((row, i) => {
-      row.querySelector(".sr-no").innerText = total - i;
-    });
-  }
-
-  /* ================= ADD ROW ================= */
-  function addRow() {
-    const tbody = document.querySelector("#vehicleTable tbody");
-    const tpl = cloneTemplate("addRowTemplate");
-    const row = tpl.querySelector("tr");
-    row.querySelector(".location").innerText = USER_LOCATION;
-    tbody.prepend(row);
-    updateSerialNumbers();
-  }
-
-  /* ================= DELETE ================= */
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
-
-    if (row.dataset.new === "true") {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
-
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
-    $.ajax({
-      url: "/delete_vehicle_data",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        n_sr_no: row.dataset.id
-      }),
-      success: function (res) {
-        if (res.success) {
-          row.remove();
-          updateSerialNumbers();
-        } else {
-          alert(res.message || "Delete failed");
-        }
-      },
-      error: function () {
-        alert("Server error while deleting");
-      }
-    });
-  }
-
-  /* ================= EDIT ================= */
-function editRow(btn) {
-  const row = btn.closest("tr");
-  row.dataset.edited = "true";
-
-  row.children[1].innerText = USER_LOCATION;
-
-  const map = [
-    { cls: ".dt", type: "datetime-local" },
-    { cls: ".vno", type: "text" },
-    { cls: ".vtype", type: "text" },
-    { cls: ".driver", type: "text" },
-    { cls: ".contact", type: "text" },
-    { cls: ".purpose", type: "textarea" }
+  const checklistItems = [
+    { code: "DL", label: "Valid Driving License" },
+    { code: "RC", label: "Valid Registration Book" },
+    { code: "INS", label: "Valid Insurance Certificate" },
+    { code: "FIT", label: "Valid Vehicle Fitness Certificate" },
+    { code: "PUC", label: "Valid PUC Certificate" },
+    { code: "SPK", label: "Spark Arrestor Fitted" },
+    { code: "FIRE", label: "Fire Extinguisher" },
+    { code: "SELF", label: "Self Start" },
+    { code: "UNDER", label: "Driver & Undercarriage Checked" },
+    { code: "PLATE", label: "Number Plate Painted" },
+    { code: "TYRE", label: "Condition of Tyres" },
+    { code: "EMG", label: "Emergency Info Panel" },
+    { code: "SHOE", label: "Crew Wearing Shoes" },
+    { code: "INFL", label: "Inflammable Items Present" },
+    { code: "LOAD", label: "Extra Load" },
+    { code: "DRUNK", label: "Crew Drunk" },
+    { code: "CCE", label: "CCE Certificate" },
+    { code: "BODY", label: "Body / Valves / Seals" },
+    { code: "OTHER", label: "Any Other" }
   ];
 
-  map.forEach((m, i) => {
-    const td = row.children[2 + i];
-    let val = row.querySelector(m.cls).innerText;
+  window.openAddForm = () => {
+    $("#listView").hide();
+    $("#step1").show();
+  };
 
-    if (m.type === "datetime-local" && val) {
-      val = val.replace(" ", "T").substring(0, 16);
-    }
+  window.nextStep = () => {
+    $("#step1").hide();
+    $("#step2").show();
+    renderChecklist();
+  };
 
-    td.innerHTML = "";
+  window.backStep = () => {
+    $("#step2").hide();
+    $("#step1").show();
+  };
 
-    let el;
-    if (m.type === "textarea") {
-      el = document.createElement("textarea");
-      el.value = val;
-    } else {
-      el = document.createElement("input");
-      el.type = m.type;
-      el.value = val;
-    }
-    td.appendChild(el);
-  });
+  window.cancel = () => location.reload();
 
-  btn.disabled = true;
-  btn.innerText = "Editing";
-}
+  function renderChecklist() {
+    const tbody = $("#checkTable tbody");
+    tbody.empty();
 
+    checklistItems.forEach(item => {
+      tbody.append(`
+        <tr data-code="${item.code}" data-label="${item.label}">
+          <td>${item.label}</td>
+          <td><input type="radio" name="${item.code}" value="Y"></td>
+          <td><input type="radio" name="${item.code}" value="N"></td>
+          <td><input class="remark"></td>
+        </tr>
+      `);
+    });
+  }
 
-  /* ================= SAVE ================= */
-  function saveTable() {
-    const rows = document.querySelectorAll("#vehicleTable tbody tr");
-    let hasAction = false;
+  window.saveData = () => {
+    const rows = $("#checkTable tbody tr");
+    const checklist = [];
+    let valid = true;
 
-    rows.forEach(row => {
-      const td = row.children;
+    rows.each(function () {
+      const code = $(this).data("code");
+      const label = $(this).data("label");
+      const status = $(this).find("input[type=radio]:checked").val();
+      const remark = $(this).find(".remark").val();
 
-      const payload = {
-        s_location_code: USER_LOCATION,
-        dt_entry_datetime: td[2].querySelector("input")?.value,
-        s_vehicle_no: td[3].querySelector("input")?.value,
-        s_vehicle_type: td[4].querySelector("input")?.value,
-        s_driver_name: td[5].querySelector("input")?.value,
-        s_contact_no: td[6].querySelector("input")?.value,
-        s_purpose_of_entry: td[7].querySelector("textarea")?.value
-      };
+      if (!status) valid = false;
+      if (status === "N" && !remark) valid = false;
 
-      /* -------- CREATE -------- */
-      if (row.dataset.new === "true") {
-        hasAction = true;
-
-        $.ajax({
-          url: "/save_vehicle_data",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload),
-          error: function () {
-            alert("Error saving vehicle record");
-          }
-        });
-      }
-
-      /* -------- UPDATE -------- */
-      if (row.dataset.edited === "true" && !row.dataset.new) {
-        hasAction = true;
-        payload.n_sr_no = row.dataset.id;
-
-        $.ajax({
-          url: "/update_vehicle_data",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload),
-          error: function () {
-            alert("Error updating vehicle record");
-          }
-        });
-      }
+      checklist.push({
+        s_check_code: code,
+        s_check_label: label,
+        s_status: status,
+        s_remark: remark
+      });
     });
 
-    if (!hasAction) {
-      alert("Nothing to save");
+    if (!valid) {
+      alert("Please complete checklist properly");
       return;
     }
 
-    alert("Saved successfully");
-    loadVehicleData();
-  }
-
-  /* ================= LOAD ================= */
-  function loadVehicleData() {
-    $.ajax({
-      url: "/get_vehicle_data",
-      type: "GET",
-      success: function (res) {
-        if (!res.success) {
-          alert("Load failed");
-          return;
-        }
-
-        allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
-        currentPage = 1;
-        renderPage();
+    const payload = {
+      master: {
+        s_location_code: $("#s_location_code").val(),
+        s_vehicle_no: $("#s_vehicle_no").val(),
+        s_vehicle_type: $("#s_vehicle_type").val(),
+        s_driver_name: $("#s_driver_name").val(),
+        s_contact_no: $("#s_contact_no").val(),
+         s_occupants_name: $("#s_occupants_name").val(), // 🔥 ADDED
+        dt_entry_datetime: $("#dt_entry_datetime").val(),
+        s_purpose_of_entry: $("#s_purpose_of_entry").val()
       },
-      error: function () {
-        alert("Server error while loading data");
+      checklist
+    };
+
+    if (!confirm("Save vehicle checklist?")) return;
+
+    $.ajax({
+      url: "/save_vehicle_checklist_full",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: res => {
+        if (res.success) {
+          alert(res.message);
+          location.reload();
+        } else {
+          alert(res.message || "Save failed");
+        }
+      },
+      error: xhr => {
+        console.error(xhr.responseText);
+        alert("Server error while saving");
       }
     });
-  }
-
-  function renderPage() {
-    const tbody = document.querySelector("#vehicleTable tbody");
-    tbody.innerHTML = "";
-
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    allData.slice(start, end).forEach(r => {
-      const row = cloneTemplate("viewRowTemplate").querySelector("tr");
-      row.dataset.id = r.n_sr_no;
-
-      row.querySelector(".loc").innerText = r.s_location_code;
-      row.querySelector(".dt").innerText = r.dt_entry_datetime;
-      row.querySelector(".vno").innerText = r.s_vehicle_no;
-      row.querySelector(".vtype").innerText = r.s_vehicle_type;
-      row.querySelector(".driver").innerText = r.s_driver_name;
-      row.querySelector(".contact").innerText = r.s_contact_no;
-      row.querySelector(".purpose").innerText = r.s_purpose_of_entry;
-
-      tbody.appendChild(row);
-    });
-
-    updateSerialNumbers();
-    updatePaginationButtons();
-  }
-
-  function updatePaginationButtons() {
-    const totalPages = Math.ceil(allData.length / rowsPerPage);
-    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages;
-  }
-
-  function nextPage() {
-    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
-      currentPage++;
-      renderPage();
-    }
-  }
-
-  function prevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      renderPage();
-    }
-  }
-
-  /* ================= EXPOSE ================= */
-  window.addRow = addRow;
-  window.saveTable = saveTable;
-  window.editRow = editRow;
-  window.deleteRow = deleteRow;
-  window.nextPage = nextPage;
-  window.prevPage = prevPage;
-  window.downloadRow = downloadRow;
-
-  document.addEventListener("DOMContentLoaded", loadVehicleData);
+  };
 }
 
-function downloadRow(btn) {
-  const row = btn.closest("tr");
-  let data = {};
-
-  if (row.dataset.id) {
-    data.n_sr_no = row.dataset.id;
-  } else {
-    const td = row.children;
-    data = {
-      s_location_code: USER_LOCATION,
-      dt_entry_datetime: td[2].querySelector("input")?.value,
-      s_vehicle_no: td[3].querySelector("input")?.value,
-      s_vehicle_type: td[4].querySelector("input")?.value,
-      s_driver_name: td[5].querySelector("input")?.value,
-      s_contact_no: td[6].querySelector("input")?.value,
-      s_purpose_of_entry: td[7].querySelector("textarea")?.value
-    };
-  }
-
-  $.ajax({
-    url: "/download_vehicle_checklist_pdf",
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(data),
-    xhrFields: {
-      responseType: "blob"   // 🔥 important for PDF
-    },
-    success: function (blob) {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "Vehicle_Checklist.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    },
-    error: function () {
-      alert("Error downloading PDF");
-    }
-  });
-}
-
-
-
-/* ================= START APP ================= */
 vehicleChecklistApp();

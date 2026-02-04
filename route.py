@@ -131,11 +131,11 @@ routes_bp.add_url_rule('/get_pipeline_mitra_data',view_func=functions.get_pipeli
 routes_bp.add_url_rule('/update_pipeline_mitra_data',view_func=functions.update_pipeline_mitra_data,methods=['POST'])
 routes_bp.add_url_rule('/delete_pipeline_mitra_data',view_func=functions.delete_pipeline_mitra_data,methods=['POST'])
 
-# ------------ start Vehicle Checklist -----------------
-routes_bp.add_url_rule('/save_vehicle_data',view_func=functions.save_vehicle_data_fn,methods=['POST'])
-routes_bp.add_url_rule('/get_vehicle_data',view_func=functions.get_vehicle_data,methods=['GET'])
-routes_bp.add_url_rule('/update_vehicle_data',view_func=functions.update_vehicle_data,methods=['POST'])
-routes_bp.add_url_rule('/delete_vehicle_data',view_func=functions.delete_vehicle_data,methods=['POST'])
+# ------------ VEHICLE CHECKLIST -----------------
+routes_bp.add_url_rule('/save_vehicle_checklist_full',view_func=functions.save_vehicle_checklist_full_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_vehicle_checklist_data',view_func=functions.get_vehicle_checklist_data_fn,methods=['GET'])
+routes_bp.add_url_rule('/update_vehicle_checklist_data',view_func=functions.update_vehicle_checklist_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/delete_vehicle_checklist_data',view_func=functions.delete_vehicle_checklist_data_fn,methods=['POST'])
 
 # ------------ VISITOR DECLARATION SLIP -----------------
 routes_bp.add_url_rule('/save_visitor_declaration_data',view_func=functions.save_visitor_declaration_data_fn,methods=['POST'])

@@ -194,53 +194,56 @@ def delete_pipeline_mitra_data():
 # =====================================================
 # VEHICLE CHECKLIST
 # =====================================================
-def save_vehicle_data_fn():
+
+def save_vehicle_checklist_full_fn():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         if not data:
             return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-        success, msg = queries.save_vehicle_data(data, username)
+        success, msg = queries.save_vehicle_checklist_full(data, username)
 
         return success_response(msg) if success else error_response(msg)
+
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def get_vehicle_data():
+def get_vehicle_checklist_data_fn():
     try:
-        success, data = queries.get_vehicle_data()
+        success, data = queries.get_vehicle_checklist_data()
         return success_response(data=data) if success else error_response("Failed to fetch data")
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def update_vehicle_data():
+def update_vehicle_checklist_data_fn():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         if not data:
             return error_response("No data received")
 
         username = session.get("user", {}).get("email", "system")
-        success, msg = queries.update_vehicle_data(data, username)
+        success, msg = queries.update_vehicle_checklist_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
+
     except Exception as e:
         return error_response(str(e), 500)
 
 
-def delete_vehicle_data():
+def delete_vehicle_checklist_data_fn():
     try:
-        data = request.get_json()
-        if not data or "n_sr_no" not in data:
+        data = request.get_json(force=True)
+        if not data or "n_vc_id" not in data:
             return error_response("Invalid delete request")
 
-        # 🔥 ADD deleted_by
-        data["deleted_by"] = session.get("user", {}).get("email", "system")
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.delete_vehicle_checklist_data(data, username)
 
-        success, msg = queries.delete_vehicle_data(data)
         return success_response(msg) if success else error_response(msg)
+
     except Exception as e:
         return error_response(str(e), 500)
 

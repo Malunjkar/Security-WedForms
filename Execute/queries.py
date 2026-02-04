@@ -810,112 +810,142 @@ def delete_pipeline_mitra_data(data):
     except Exception as e:
         return False, str(e)
 
+# =====================================================
+# VEHICLE CHECKLIST
+# =====================================================
 
-#------------- vehicle checklist start -------------
-# ------------ CREATE -----------------
-def save_vehicle_data(data, username="system"):
+def save_vehicle_checklist_full(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT ISNULL(MAX(n_sr_no),0)+1 FROM dbo.VEHICLE_CHECK_LIST"
-        )
-        next_sr_no = cursor.fetchone()[0]
+        master = data["master"]
+        checklist = data["checklist"]
 
-        # ✅ FIX datetime-local format
-        entry_dt = data.get("dt_entry_datetime")
-        if entry_dt:
-            entry_dt = datetime.strptime(entry_dt, "%Y-%m-%dT%H:%M")
-
-        insert_vehicle_record(
-            cursor,
-            data,
-            next_sr_no,
-            username,
-            entry_dt
+        entry_dt = datetime.strptime(
+            master["dt_entry_datetime"], "%Y-%m-%dT%H:%M"
         )
 
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Vehicle record saved successfully"
-
-    except Exception as e:
-        print("SAVE VEHICLE ERROR:", e)   # 🔥 IMPORTANT
-        return False, str(e)
-
-
-def insert_vehicle_record(cursor, data, n_sr_no, username, entry_dt):
-    sql = """
-    INSERT INTO dbo.VEHICLE_CHECK_LIST
-    (
-        n_sr_no,
-        s_location_code,
-        dt_entry_datetime,
-        s_vehicle_no,
-        s_vehicle_type,
-        s_driver_name,
-        s_contact_no,
-        s_purpose_of_entry,
-        s_created_by
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    cursor.execute(sql, (
-        n_sr_no,
-        data.get("s_location_code"),
-        entry_dt,
-        data.get("s_vehicle_no"),
-        data.get("s_vehicle_type"),
-        data.get("s_driver_name"),
-        data.get("s_contact_no"),
-        data.get("s_purpose_of_entry"),
-        username
-    ))
-
-
-
-# ------------ READ -----------------
-def get_vehicle_data():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
+        # ---------- INSERT MASTER ----------
         cursor.execute("""
-            SELECT
-                n_sr_no,
+            INSERT INTO dbo.VEHICLE_CHECKLIST_MASTER
+            (
                 s_location_code,
                 dt_entry_datetime,
                 s_vehicle_no,
                 s_vehicle_type,
                 s_driver_name,
                 s_contact_no,
+                s_occupants_name,
+                s_purpose_of_entry,
+                s_created_by,
+                n_flag
+            )
+            OUTPUT INSERTED.n_vc_id
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        """, (
+            master["s_location_code"],
+            entry_dt,
+            master["s_vehicle_no"],
+            master.get("s_vehicle_type"),
+            master.get("s_driver_name"),
+            master.get("s_contact_no"),
+            master.get("s_occupants_name"),
+            master.get("s_purpose_of_entry"),
+            username
+        ))
+
+        n_vc_id = cursor.fetchone()[0]
+
+        # ---------- INSERT CHECKLIST ----------
+        for row in checklist:
+            cursor.execute("""
+                INSERT INTO dbo.VEHICLE_CHECKLIST
+                (
+                    n_vc_id,
+                    s_check_code,
+                    s_check_label,
+                    s_status,
+                    s_remark,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+            """, (
+                n_vc_id,
+                row["s_check_code"],
+                row["s_check_label"],
+                row["s_status"],
+                row.get("s_remark"),
+                username
+            ))
+
+        conn.commit()
+        return True, "Vehicle checklist saved successfully"
+
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)
+
+
+def get_vehicle_checklist_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_vc_id,
+                s_location_code,
+                dt_entry_datetime,
+                s_vehicle_no,
+                s_vehicle_type,
+                s_driver_name,
+                s_contact_no,
+                s_occupants_name,
                 s_purpose_of_entry
-            FROM dbo.VEHICLE_CHECK_LIST
-                       WHERE ISNULL(delete_flag, 0) = 0
-            ORDER BY n_sr_no DESC
+            FROM dbo.VEHICLE_CHECKLIST_MASTER
+            WHERE n_flag = 1
+            ORDER BY n_vc_id DESC
         """)
 
-        rows = cursor.fetchall()
+        masters = cursor.fetchall()
         result = []
 
-        for r in rows:
-            result.append({
-                "n_sr_no": r[0],
-                "s_location_code": r[1],
-                "dt_entry_datetime": str(r[2]),
-                "s_vehicle_no": r[3],
-                "s_vehicle_type": r[4],
-                "s_driver_name": r[5],
-                "s_contact_no": r[6],
-                "s_purpose_of_entry": r[7]
-            })
+        for m in masters:
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_check_code,
+                    s_check_label,
+                    s_status,
+                    s_remark
+                FROM dbo.VEHICLE_CHECKLIST
+                WHERE n_vc_id = ? AND n_flag = 1
+            """, (m[0],))
 
-        cursor.close()
-        conn.close()
+            checks = cursor.fetchall()
+
+            result.append({
+                "n_vc_id": m[0],
+                "s_location_code": m[1],
+                "dt_entry_datetime": str(m[2]),
+                "s_vehicle_no": m[3],
+                "s_vehicle_type": m[4],
+                "s_driver_name": m[5],
+                "s_contact_no": m[6],
+                "s_occupants_name": m[7],
+                "s_purpose_of_entry": m[8],
+                "checklist": [
+                    {
+                        "n_sr_no": c[0],
+                        "s_check_code": c[1],
+                        "s_check_label": c[2],
+                        "s_status": c[3],
+                        "s_remark": c[4]
+                    } for c in checks
+                ]
+            })
 
         return True, result
 
@@ -923,106 +953,114 @@ def get_vehicle_data():
         return False, str(e)
 
 
-# ------------ UPDATE -----------------
-def update_vehicle_data(data, username="system"):
+def update_vehicle_checklist_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        entry_dt = data.get("dt_entry_datetime")
-        if entry_dt:
-            entry_dt = datetime.strptime(entry_dt, "%Y-%m-%dT%H:%M")
+        master = data["master"]
+        checklist = data["checklist"]
 
-        sql = """
-        UPDATE dbo.VEHICLE_CHECK_LIST
-        SET
-            s_location_code = ?,
-            dt_entry_datetime = ?,
-            s_vehicle_no = ?,
-            s_vehicle_type = ?,
-            s_driver_name = ?,
-            s_contact_no = ?,
-            s_purpose_of_entry = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
+        entry_dt = datetime.strptime(
+            master["dt_entry_datetime"], "%Y-%m-%dT%H:%M"
+        )
 
-        cursor.execute(sql, (
-            data["s_location_code"],
-            entry_dt,                   
-            data["s_vehicle_no"],
-            data["s_vehicle_type"],
-            data["s_driver_name"],
-            data["s_contact_no"],
-            data["s_purpose_of_entry"],
+        # ---------- UPDATE MASTER ----------
+        cursor.execute("""
+            UPDATE dbo.VEHICLE_CHECKLIST_MASTER
+            SET
+                s_location_code = ?,
+                dt_entry_datetime = ?,
+                s_vehicle_no = ?,
+                s_vehicle_type = ?,
+                s_driver_name = ?,
+                s_contact_no = ?,
+                s_occupants_name = ?,
+                s_purpose_of_entry = ?,
+                dt_updated_at = GETDATE(),
+                s_updated_by = ?
+            WHERE n_vc_id = ?
+        """, (
+            master["s_location_code"],
+            entry_dt,
+            master["s_vehicle_no"],
+            master.get("s_vehicle_type"),
+            master.get("s_driver_name"),
+            master.get("s_contact_no"),
+            master.get("s_occupants_name"),
+            master.get("s_purpose_of_entry"),
             username,
-            data["n_sr_no"]
+            master["n_vc_id"]
         ))
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+        # ---------- SOFT DELETE OLD CHECKLIST ----------
+        cursor.execute("""
+            UPDATE dbo.VEHICLE_CHECKLIST
+            SET n_flag = 0
+            WHERE n_vc_id = ?
+        """, (master["n_vc_id"],))
 
-        return True, "Vehicle record updated successfully"
+        # ---------- INSERT NEW CHECKLIST ----------
+        for row in checklist:
+            cursor.execute("""
+                INSERT INTO dbo.VEHICLE_CHECKLIST
+                (
+                    n_vc_id,
+                    s_check_code,
+                    s_check_label,
+                    s_status,
+                    s_remark,
+                    s_created_by,
+                    n_flag
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+            """, (
+                master["n_vc_id"],
+                row["s_check_code"],
+                row["s_check_label"],
+                row["s_status"],
+                row.get("s_remark"),
+                username
+            ))
+
+        conn.commit()
+        return True, "Vehicle checklist updated successfully"
 
     except Exception as e:
-        print("UPDATE VEHICLE ERROR:", e)
+        conn.rollback()
         return False, str(e)
 
 
-# ------------ DELETE -----------------
-def delete_vehicle_data(data):
+def delete_vehicle_checklist_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
+        n_vc_id = data["n_vc_id"]
 
         cursor.execute("""
-            UPDATE dbo.VEHICLE_CHECK_LIST
+            UPDATE dbo.VEHICLE_CHECKLIST_MASTER
             SET
-                delete_flag = 1,
-                deleted_on = GETDATE(),
-                deleted_by = ?
-            WHERE n_sr_no = ?
-        """, (
-            data.get("deleted_by", "system"),
-            data["n_sr_no"]
-        ))
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_vc_id = ?
+        """, (username, n_vc_id))
+
+        cursor.execute("""
+            UPDATE dbo.VEHICLE_CHECKLIST
+            SET
+                n_flag = 0,
+                dt_deleted_at = GETDATE(),
+                s_deleted_by = ?
+            WHERE n_vc_id = ?
+        """, (username, n_vc_id))
 
         conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Vehicle record deleted successfully"
+        return True, "Vehicle checklist deleted successfully"
 
     except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        sql = """
-        UPDATE dbo.VEHICLE_CHECK_LIST
-        SET
-            delete_flag = 1,
-            deleted_at = GETDATE(),
-            deleted_by = ?
-        WHERE n_sr_no = ?
-        """
-
-        cursor.execute(sql, (
-            data.get("deleted_by", "system"),
-            data["n_sr_no"]
-        ))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Vehicle record deleted successfully"
-
-    except Exception as e:
+        conn.rollback()
         return False, str(e)
 
 

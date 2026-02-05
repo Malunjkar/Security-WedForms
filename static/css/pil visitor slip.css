@@ -1,21 +1,21 @@
-/* ================= BASE ================= */
+/* ================= RESET & BASE ================= */
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
-body {
+html, body {
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
   background: #f2f4f8;
 }
 
-/* ================= HEADER ================= */
 /* ================= NAVBAR ================= */
 .header-dashboard {
   position: sticky;
   top: 0;
   z-index: 1000;
-
   height: 60px;
   width: 100%;
   padding: 0 20px;
@@ -35,7 +35,6 @@ body {
   gap: 10px;
   font-size: 26px;
   cursor: pointer;
-  user-select: none;
 }
 
 .logo-dashboard {
@@ -51,7 +50,6 @@ body {
   background: #fff;
   padding: 6px 10px;
   border-radius: 50px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 #profileInitials {
@@ -61,99 +59,35 @@ body {
   background: #007bff;
   color: #fff;
   font-weight: bold;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-
-.logo-dashboard {
-  height: 40px;
+#profileAvatar span {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* ================= CONTAINER ================= */
 .container {
-  max-width: 1100px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
+  max-width: 100%;
+  padding: 0 20px;
 }
 
-/* ================= TABLE ================= */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background: #1f3a5f;
-  color: #fff;
-}
-
-/* ================= FORM ================= */
-.form-box {
-  display: none;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-input, select {
-  padding: 7px;
-  width: 100%;
-}
-
-/* ================= BUTTONS ================= */
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-add { background: #1976d2; color: #fff; }
-.btn-save { background: #2e7d32; color: #fff; }
-.secondary { background: #6c757d; color: #fff; }
-.danger { background: #dc3545; color: #fff; }
-
-.icon-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px 6px;
-}
-
-.icon-btn.delete {
-  color: #dc3545;
-}
-
-.icon-btn:hover {
-  transform: scale(1.2);
-}
-/* ================= PAGINATION ================= */
+/* ================= TOOLBAR / PAGINATION ================= */
 .toolbar {
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 15px 0;
+  margin: 0 0 20px;
 }
 
 .pagination {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
 }
 
 .pagination button {
@@ -171,3 +105,166 @@ button {
   cursor: not-allowed;
 }
 
+#pageInfo {
+  font-weight: 600;
+}
+
+/* ================= LIST HEADER ================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* ================= LIST VIEW ================= */
+#listView {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ================= MASTER TABLE ================= */
+#masterTable {
+  min-width: 1200px;
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+#masterTable th,
+#masterTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#masterTable th {
+  background: #1f3a5f;
+  color: #fff;
+  font-weight: 600;
+}
+
+#masterTable td {
+  white-space: nowrap;
+}
+
+/* ================= FORM BOX ================= */
+.form-box {
+  display: none;
+  max-width: 1100px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.form-box h3 {
+  margin-top: 0;
+}
+
+/* ================= FORM ROW ================= */
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input, textarea, select {
+  width: 100%;
+  font-size: 14px;
+  padding: 7px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ================= ITEM TABLE ================= */
+#itemTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+#itemTable th,
+#itemTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+}
+
+#itemTable th {
+  background: #1f3a5f;
+  color: #fff;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add {
+  background: #1976d2;
+  color: #fff;
+}
+
+.btn-save {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* ================= ICON BUTTONS ================= */
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.icon-btn.edit {
+  color: #000;
+}
+
+.icon-btn.delete {
+  color: #dc3545;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+}
+
+/* ================= PRINT ================= */
+@media print {
+  .toolbar,
+  .pagination,
+  button {
+    display: none;
+  }
+
+  input, textarea {
+    border: none;
+  }
+}

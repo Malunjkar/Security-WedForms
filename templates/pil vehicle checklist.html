@@ -73,32 +73,39 @@
 
         <!-- =============== STEP 1 =============== -->
         <div id="step1" class="form-box">
-            <h3>Vehicle Details</h3>
+        <h3>Vehicle Details</h3>
 
-            <input type="hidden" id="n_vc_id">
-            <input id="s_location_code" placeholder="Location" readonly>
+        <input type="hidden" id="n_vc_id">
 
-            <div class="row">
-                <input id="s_vehicle_no" placeholder="Vehicle No">
-                <input id="s_vehicle_type" placeholder="Vehicle Type">
-            </div>
+        <!-- Row 1 -->
+        <div class="row">
+            <input id="s_location_code" placeholder="Location" required>
+            <input id="s_vehicle_no" placeholder="Vehicle No" required>
+        </div>
 
-            <div class="row">
-                <input id="s_driver_name" placeholder="Driver Name">
-                <input id="s_contact_no" placeholder="Contact No">
-            </div>
+        <!-- Row 2 -->
+        <div class="row">
+            <input id="s_vehicle_type" placeholder="Vehicle Type" required>
+            <input id="s_driver_name" placeholder="Driver Name" required>
+        </div>
 
-            <div class="row">
-                <input id="s_occupants_name" placeholder="Occupants Name">
-            </div>
+        <!-- Row 3 -->
+        <div class="row">
+            <input id="s_contact_no"
+                placeholder="Contact No"
+                maxlength="10"
+                inputmode="numeric"
+                required>
+            <input id="s_occupants_name" placeholder="Occupants Name" required>
+        </div>
 
-            <div class="row">
-                <input type="datetime-local" id="dt_entry_datetime">
-            </div>
-
-            <textarea id="s_purpose_of_entry" placeholder="Purpose of Entry"></textarea>
-
-           
+        <!-- Row 4 -->
+        <div class="row">
+            <input type="datetime-local" id="dt_entry_datetime" required>
+            <textarea id="s_purpose_of_entry"
+                    placeholder="Purpose of Entry"
+                    required></textarea>
+        </div>
         </div>
 
         <!-- =============== STEP 2 =============== -->

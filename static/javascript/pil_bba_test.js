@@ -225,7 +225,6 @@ function saveTable() {
     return;
   }
 
-  // 🔔 Smart confirmation message
   let confirmMsg = "Do you want to save changes?";
   if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
   if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
@@ -277,7 +276,7 @@ function saveTable() {
     }
   });
 
-  // ✅ Success popup
+  
   if (saved && updated) {
     alert("Records added and updated successfully");
   } else if (saved) {

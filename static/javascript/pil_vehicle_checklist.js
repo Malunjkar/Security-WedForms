@@ -158,7 +158,7 @@ $("#checkTable").on("change", "input[type=radio]", function () {
   /* ============ SAVE / UPDATE ============ */
   window.saveData = () => {
 
-    // 🚫 Block save if checklist not loaded
+    
     if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
       alert("Please complete checklist before saving.");
       return;

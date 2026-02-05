@@ -36,7 +36,7 @@ function patrollingApp() {
 
       if (!res.success || !Array.isArray(res.data)) return;
 
-      // 🔥 Same as Mitra – latest first
+      
       allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
       currentPage = 1;
       renderPage();
@@ -181,7 +181,7 @@ function patrollingApp() {
       return;
     }
 
-    // 🔁 DOUBLE CONFIRM (same as Mitra)
+    
     if (!confirm("Do you want to proceed with saving changes?")) return;
     if (!confirm("This action will permanently update records. Continue?")) return;
 

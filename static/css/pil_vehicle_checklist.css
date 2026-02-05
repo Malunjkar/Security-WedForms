@@ -1,20 +1,21 @@
-/* ================= BASE ================= */
+/* ================= RESET & BASE ================= */
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
-body {
+html, body {
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
   background: #f2f4f8;
 }
 
-/* ================= HEADER ================= */
+/* ================= NAVBAR ================= */
 .header-dashboard {
   position: sticky;
   top: 0;
   z-index: 1000;
-
   height: 60px;
   width: 100%;
   padding: 0 20px;
@@ -49,7 +50,6 @@ body {
   background: #fff;
   padding: 6px 10px;
   border-radius: 50px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 #profileInitials {
@@ -59,7 +59,6 @@ body {
   background: #007bff;
   color: #fff;
   font-weight: bold;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,130 +66,28 @@ body {
 
 #profileAvatar span {
   margin-left: 8px;
-  font-weight: bold;
-  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* ================= CONTAINER ================= */
 .container {
-  max-width: 1100px;
-  margin: 20px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
+  max-width: 100%;
+  padding: 0 20px;
 }
 
-/* ================= LIST HEADER ================= */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ================= TABLE ================= */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background: #1f3a5f;
-  color: #fff;
-}
-
-td:first-child {
-  text-align: left;
-}
-
-/* ================= FORM ================= */
-.form-box {
-  display: none;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-input, textarea {
-  padding: 7px;
-  width: 100%;
-}
-
-/* ================= BUTTONS ================= */
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-add { background: #1976d2; color: #fff; }
-.btn-save { background: #2e7d32; color: #fff; }
-.secondary { background: #6c757d; color: #fff; }
-
-.btn-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-/* ================= ICON BUTTONS ================= */
-.icon-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px 6px;
-}
-
-.icon-btn.edit { color: #1976d2; }
-.icon-btn.delete { color: #dc3545; }
-
-.icon-btn:hover {
-  transform: scale(1.2);
-}
-
-/* ================= CHECKLIST ================= */
-#checkTable input[type="radio"] {
-  transform: scale(1.1);
-}
-
-#checkTable .remark {
-  width: 100%;
-  padding: 5px;
-}
-
-/* ================= RESPONSIVE ================= */
-@media (max-width: 768px) {
-  .row {
-    flex-direction: column;
-  }
-}
-.remark-required {
-  border: 2px solid #e74c3c;
-  background-color: #fff3f3;
-}
-
-/* ================= PAGINATION ================= */
+/* ================= TOOLBAR / PAGINATION ================= */
 .toolbar {
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 15px 0;
+  margin: 0 0 20px;
 }
 
 .pagination {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
 }
 
 .pagination button {
@@ -208,3 +105,224 @@ button {
   cursor: not-allowed;
 }
 
+#pageInfo {
+  font-weight: 600;
+}
+
+/* ================= LIST HEADER ================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* ================= TABLE WRAPPER ================= */
+#listView {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ================= MASTER TABLE ================= */
+#masterTable {
+  min-width: 1400px;
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+#masterTable th,
+#masterTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#masterTable th {
+  background: #1f3a5f;
+  color: #fff;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+#masterTable td {
+  white-space: nowrap;
+}
+
+/* ================= COLUMN WIDTHS ================= */
+#masterTable th:nth-child(1),
+#masterTable td:nth-child(1) { min-width: 60px; }
+
+#masterTable th:nth-child(2),
+#masterTable td:nth-child(2) { min-width: 140px; }
+
+#masterTable th:nth-child(3),
+#masterTable td:nth-child(3) { min-width: 160px; }
+
+#masterTable th:nth-child(4),
+#masterTable td:nth-child(4) { min-width: 130px; }
+
+#masterTable th:nth-child(5),
+#masterTable td:nth-child(5) { min-width: 140px; }
+
+#masterTable th:nth-child(6),
+#masterTable td:nth-child(6) { min-width: 160px; }
+
+#masterTable th:nth-child(7),
+#masterTable td:nth-child(7) { min-width: 140px; }
+
+#masterTable th:nth-child(8),
+#masterTable td:nth-child(8) { min-width: 200px; }
+
+#masterTable th:nth-child(9),
+#masterTable td:nth-child(9) { min-width: 120px; }
+
+/* ================= DEFAULT FORM (NEW CSS – overridden later) ================= */
+.form-box {
+  display: none;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input, textarea, select {
+  width: 100%;
+  font-size: 13px;
+  padding: 7px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add  { background: #1976d2; color: #fff; }
+.btn-save { background: #2e7d32; color: #fff; }
+.secondary { background: #6c757d; color: #fff; }
+
+/* ================= ICON BUTTONS ================= */
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.icon-btn.edit { color: #000000; }
+.icon-btn.delete { color: #dc3545; }
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+/* ================= CHECKLIST ================= */
+#checkTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+#checkTable th,
+#checkTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+}
+
+#checkTable th {
+  background: #1f3a5f;
+  color: #fff;
+}
+
+#checkTable input[type="radio"] {
+  transform: scale(1.1);
+}
+
+#checkTable .remark {
+  width: 100%;
+  padding: 5px;
+}
+
+.remark-required {
+  border: 2px solid #e74c3c;
+  background-color: #fff3f3;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+}
+
+/* ================= PRINT ================= */
+@media print {
+  .toolbar,
+  .pagination,
+  button {
+    display: none;
+  }
+
+  input, textarea {
+    border: none;
+  }
+}
+
+/* =======================================================
+   OLD FORM CSS OVERRIDE (RESTORE OLD ADD / EDIT FORM UI)
+   ======================================================= */
+
+#step1.form-box,
+#step2.form-box {
+  max-width: 1100px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+#step1 .row,
+#step2 .row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#step1 input,
+#step1 textarea,
+#step2 input,
+#step2 textarea {
+  padding: 7px;
+  width: 100%;
+  font-size: 14px;
+}
+
+#step1 .btn-row,
+#step2 .btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+#step1 #s_location_code,
+#step2 #s_location_code {
+  background: #f3f3f3;
+  cursor: not-allowed;
+}

@@ -8,7 +8,7 @@ def save_patrolling_data(data, username="system"):
         conn = get_connection()
         cursor = conn.cursor()
 
-        # 🔹 Get next primary key safely
+        
         cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.Patrolling_Observation_Register")
         next_sr_no = cursor.fetchone()[0]
 
@@ -465,7 +465,7 @@ def update_bba_test_data(data, username="system"):
             data["s_person_type"],
             data["s_test_result"],
             data["n_bac_count"],
-            data.get("img_attachment"),   # NEW
+            data.get("img_attachment"), 
             data["s_security_personnel_name"],
             data["s_remarks"],
             username,

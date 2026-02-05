@@ -114,7 +114,7 @@ def delete_bba_test_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
-        # 🔥 ADD deleted_by
+        
         data["deleted_by"] = session.get("user", {}).get("email", "system")
 
         username = session.get("user", {}).get("email", "system")

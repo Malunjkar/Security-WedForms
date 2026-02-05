@@ -36,7 +36,7 @@ function pipelineMitraApp() {
 
       if (!res.success || !Array.isArray(res.data)) return;
 
-      // ❌ DO NOT FILTER delete_flag (not returned by API)
+      
       allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
 
       currentPage = 1;
@@ -151,22 +151,22 @@ function pipelineMitraApp() {
     if (row.dataset.edited && !row.dataset.new) hasEdit = true;
   });
 
-  // 🚫 Nothing to save
+  
   if (!hasNew && !hasEdit) {
     alert("Nothing to save");
     return;
   }
 
-  // ✅ Dynamic confirmation message
+  
   let confirmMsg = "Do you want to save changes?";
   if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
   if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
   if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
 
-  // ❌ User cancelled
+  
   if (!confirm(confirmMsg)) return;
 
-  // ✅ Proceed with save
+  //Proceed with save
   rows.forEach(row => {
     const td = row.children;
 
@@ -180,7 +180,7 @@ function pipelineMitraApp() {
       s_remarks: td[7].querySelector("input")?.value
     };
 
-    // ➕ INSERT
+    // INSERT
    if (row.dataset.new) {
   $.ajax({
     url: "/save_pipeline_mitra_data",
@@ -192,7 +192,7 @@ function pipelineMitraApp() {
 
     
     
-// ✏️ UPDATE
+// UPDATE
 if (row.dataset.edited && !row.dataset.new) {
   payload.n_sr_no = row.dataset.id;
   $.ajax({
@@ -204,7 +204,7 @@ if (row.dataset.edited && !row.dataset.new) {
 }
   });
 
-  // ✅ Final success popup
+  // Final success popup
   if (hasNew && hasEdit) {
     alert("Records added and updated successfully");
   } else if (hasNew) {
@@ -234,11 +234,11 @@ if (row.dataset.edited && !row.dataset.new) {
   if (!confirm("Are you sure you want to delete this record?")) return;
 
   $.ajax({
-    url: "/delete_pipeline_mitra_data",   // ✅ CORRECT API
+    url: "/delete_pipeline_mitra_data",   
     type: "POST",
     contentType: "application/json",
     data: JSON.stringify({
-      n_sr_no: row.dataset.id             // ✅ REQUIRED
+      n_sr_no: row.dataset.id             
     }),
     success: res => {
       if (res.success) {

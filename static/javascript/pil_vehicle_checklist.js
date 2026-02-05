@@ -55,33 +55,43 @@ function hidePagination() {
 }
 
 
-  function renderPage() {
-    const tbody = $("#masterTable tbody").empty();
+ function renderPage() {
+  const tbody = $("#masterTable tbody").empty();
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-    const pageData = allData.slice(start, end);
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach(r => {
-      const tr = $(`
+  pageData.forEach((r, index) => {
+    const tr = $(`
       <tr>
-        <td>${r.s_vehicle_no}</td>
+        <td>${start + index + 1}</td>
+        <td>${r.s_location_code || ""}</td>
+        <td>${r.dt_entry_datetime || ""}</td>
+        <td>${r.s_vehicle_no || ""}</td>
+        <td>${r.s_vehicle_type || ""}</td>
         <td>${r.s_driver_name || ""}</td>
-        <td>${r.dt_entry_datetime}</td>
+        <td>${r.s_contact_no || ""}</td>
+        <td>${r.s_purpose_of_entry || ""}</td>
         <td>
-          <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
-          <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
+          <button class="icon-btn edit">
+            <i class="fa fa-pen"></i>
+          </button>
+          <button class="icon-btn delete">
+            <i class="fa fa-trash"></i>
+          </button>
         </td>
       </tr>
     `);
 
-      tr.data("record", r);
-      tbody.append(tr);
-    });
+    tr.data("record", r);
+    tbody.append(tr);
+  });
 
-    updatePaginationButtons();
-  }
+  updatePaginationButtons();
+}
+
 
   function updatePaginationButtons() {
     const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
@@ -116,6 +126,10 @@ function hidePagination() {
     $("#step1").show();
 
     hidePagination();
+
+    $("#s_location_code")
+    .val(USER_LOCATION)
+    .prop("readonly", true);
   };
 
   window.nextStep = () => {
@@ -201,6 +215,9 @@ function hidePagination() {
     $("#step1").show();
 
      hidePagination();
+    $("#s_location_code")
+    .val(USER_LOCATION)
+    .prop("readonly", true);
 
     $("#s_vehicle_no").val(r.s_vehicle_no);
     $("#s_vehicle_type").val(r.s_vehicle_type);

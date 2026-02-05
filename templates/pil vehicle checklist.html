@@ -47,21 +47,27 @@
         <!-- =============== LIST VIEW =============== -->
         <div id="listView">
             <div class="header">
-                <h3>Vehicle Records</h3>
+                <!-- <h3>Vehicle Records</h3> -->
                 <button class="btn-add" onclick="openAddForm()">Add Data</button>
             </div>
 
             <table id="masterTable">
-                <thead>
-                    <tr>
-                        <th>Vehicle No</th>
-                        <th>Driver</th>
-                        <th>Date / Time</th>
-                        <th style="width:120px;">Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
+            <thead>
+                <tr>
+                <th>Sr. No.</th>
+                <th>Location</th>
+                <th>Date / Time</th>
+                <th>Vehicle No</th>
+                <th>Vehicle Type</th>
+                <th>Driver Name</th>
+                <th>Contact No</th>
+                <th>Purpose of Entry</th>
+                <th style="width:120px;">Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
             </table>
+
         </div>
 
         <!-- =============== STEP 1 =============== -->
@@ -69,7 +75,7 @@
             <h3>Vehicle Details</h3>
 
             <input type="hidden" id="n_vc_id">
-            <input type="hidden" id="s_location_code" value="{{ user_location }}">
+            <input id="s_location_code" placeholder="Location" readonly>
 
             <div class="row">
                 <input id="s_vehicle_no" placeholder="Vehicle No">
@@ -102,17 +108,16 @@
             <h3>Checklist</h3>
 
             <table id="checkTable">
-                <thead>
-                    <tr>
-                        <th>Check</th>
-                        <th style="width:80px;">Yes</th>
-                        <th style="width:80px;">No</th>
-                        <th>Remark</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
+            <thead>
+                <tr>
+                <th>Check</th>
+                <th style="width:80px;">Yes</th>
+                <th style="width:80px;">No</th>
+                <th>Remark</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
             </table>
-
             <div class="btn-row">
                 <button class="secondary" onclick="backStep()">Back</button>
                 <button class="btn-save" onclick="saveData()">Save</button>
@@ -120,7 +125,7 @@
         </div>
 
     </div>
-
+    <script>const USER_LOCATION = "{{ session['user']['location'] }}";</script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='javascript/pil_vehicle_checklist.js') }}"></script>
 </body>

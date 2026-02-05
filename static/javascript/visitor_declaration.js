@@ -86,6 +86,11 @@ function visitorDeclarationApp() {
     $("#paginationBar").hide();
     $("#listView").hide();
     $("#step1").show();
+
+    $("#s_location")
+    .val(USER_LOCATION)
+    .prop("readonly", true);
+
   };
 
   window.nextStep = () => { $("#step1").hide(); $("#step2").show(); };
@@ -104,7 +109,10 @@ function visitorDeclarationApp() {
     $("#listView").hide();
     $("#step1").show();
 
-    $("#s_location").val(r.s_location);
+    $("#s_location")
+    .val(USER_LOCATION)
+    .prop("readonly", true);
+
     $("#s_visitor_name").val(r.s_visitor_name);
     $("#s_visitor_pass_no").val(r.s_visitor_pass_no);
     $("#s_whom_to_meet").val(r.s_whom_to_meet);
@@ -151,7 +159,7 @@ function visitorDeclarationApp() {
     const payload = {
       master: {
         n_sl_no: editId,
-        s_location: $("#s_location").val(),
+        s_location: USER_LOCATION,
         s_visitor_name: $("#s_visitor_name").val(),
         s_visitor_pass_no: $("#s_visitor_pass_no").val(),
         s_whom_to_meet: $("#s_whom_to_meet").val(),

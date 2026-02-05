@@ -115,7 +115,7 @@
     </div>
 
   </div>
-  <script>const USER_LOCATION = "{{ user_location }}";</script>
+  <script>const USER_LOCATION = "{{ (session.get('user') or {}).get('location','') }}";</script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
 

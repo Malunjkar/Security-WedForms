@@ -321,14 +321,18 @@ button {
   margin-top: 15px;
 }
 
-#step1 #s_location_code,
-#step2 #s_location_code {
-  background: #f3f3f3;
-  cursor: not-allowed;
-}
 /* ================= TABLE FOOTER ================= */
 .table-footer {
   display: flex;
   justify-content: center;
   margin: 20px 0;
+}
+
+/* Vehicle Details form only */
+#step1 input {
+  height: 38px;
+}
+
+#step1 textarea#s_purpose_of_entry {
+  min-height: 100px;
 }

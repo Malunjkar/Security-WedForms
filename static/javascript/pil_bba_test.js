@@ -5,33 +5,54 @@ function bbaTestApp() {
 
   /* ================= IMAGE PREVIEW ================= */
   function previewFile(input) {
-    const file = input.files[0];
-    if (!file) return;
+  const file = input.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
+  const reader = new FileReader();
 
-    reader.onload = function (e) {
-      input.dataset.base64 = e.target.result;
-      input.dataset.type = file.type;
-      input.dataset.name = file.name;
+  reader.onload = function (e) {
+    input.dataset.base64 = e.target.result;
+    input.dataset.type = file.type;
+    input.dataset.name = file.name;
 
-      let previewDiv = input.closest("td").querySelector(".img-preview");
+    const td = input.closest("td");
 
-      if (!previewDiv) {
-        previewDiv = document.createElement("div");
-        previewDiv.className = "img-preview";
-        input.closest("td").appendChild(previewDiv);
-      }
+    let previewDiv = td.querySelector(".img-preview");
+    if (!previewDiv) {
+      previewDiv = document.createElement("div");
+      previewDiv.className = "img-preview";
+      td.appendChild(previewDiv);
+    }
 
-      previewDiv.innerHTML = `
-      <button type="button" onclick="openFromInput(this)">
-        View Document
-      </button>
-    `;
-    };
+    previewDiv.innerHTML = "";
 
-    reader.readAsDataURL(file);
-  }
+    const fileName = document.createElement("div");
+
+    const shortName =
+      file.name.length > 15
+        ? file.name.substring(0, 15) + "..."
+        : file.name;
+
+    fileName.textContent = shortName;
+    fileName.title = file.name;
+    fileName.style.fontSize = "12px";
+    fileName.style.marginBottom = "4px";
+
+    fileName.style.fontSize = "12px";
+    fileName.style.marginBottom = "4px";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "View Document";
+    btn.onclick = () => openFromInput(btn);
+
+    previewDiv.appendChild(fileName);
+    previewDiv.appendChild(btn);
+  };
+
+  reader.readAsDataURL(file);
+}
+
 
   function showFile(base64, type, name) {
     const modal = document.getElementById("filePreviewModal");
@@ -90,6 +111,9 @@ function bbaTestApp() {
 
     row.dataset.new = "true";
     row.querySelector(".loc").innerText = USER_LOCATION;
+
+    const previewDiv = row.querySelector(".img-preview");
+    if (previewDiv) previewDiv.innerHTML = "";
 
     tbody.prepend(row);
     updateSerialNumbers();

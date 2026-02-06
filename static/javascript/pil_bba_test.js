@@ -1,5 +1,4 @@
 function bbaTestApp() {
-
   let allData = [];
   let currentPage = 1;
   const rowsPerPage = 10;
@@ -34,82 +33,26 @@ function bbaTestApp() {
     reader.readAsDataURL(file);
   }
 
-
-
-
   function showFile(base64, type, name) {
-    const win = window.open("");
+    const modal = document.getElementById("filePreviewModal");
+    const frame = document.getElementById("fileFrame");
 
-    // IMAGE
-   if (type.startsWith("image/")) {
-  win.document.write(`
-    <html>
-      <head>
-        <title>${name}</title>
-        <style>
-          html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-          }
-
-          .wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform: scale(0.67);
-            transform-origin: center center;
-          }
-
-          img {
-            max-width: 100vw;
-            max-height: 100vh;
-            object-fit: contain;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="wrapper">
-          <img src="${base64}">
-        </div>
-      </body>
-    </html>
-  `);
-  return;
-}
-
-
-    // PDF
-    if (type === "application/pdf") {
-      win.document.write(`
-      <html>
-        <head><title>${name}</title></head>
-        <body style="margin:0">
-          <iframe src="${base64}" style="width:100%; height:100vh; border:none;"></iframe>
-        </body>
-      </html>
-    `);
+    if (!base64) {
+      alert("No file available");
       return;
     }
 
-    // OTHER FILE TYPES → DOWNLOAD
-    win.document.write(`
-    <html>
-      <head><title>${name}</title></head>
-      <body style="display:flex; justify-content:center; align-items:center; height:100vh;">
-        <a href="${base64}" download="${name}" style="font-size:18px;">
-          Click here to download ${name}
-        </a>
-      </body>
-    </html>
-  `);
+    frame.src = base64;
+    modal.classList.remove("hidden");
   }
 
+  function closePreview() {
+    const modal = document.getElementById("filePreviewModal");
+    const frame = document.getElementById("fileFrame");
+
+    frame.src = "";
+    modal.classList.add("hidden");
+  }
 
   /* ================= HELPERS ================= */
   function cloneTemplate(id) {
@@ -124,7 +67,6 @@ function bbaTestApp() {
     });
   }
 
-
   function openFromInput(btn) {
     const input = btn.closest("td").querySelector("input[type='file']");
 
@@ -136,7 +78,7 @@ function bbaTestApp() {
     showFile(
       input.dataset.base64,
       input.dataset.type || "application/octet-stream",
-      input.dataset.name || "Attachment"
+      input.dataset.name || "Attachment",
     );
   }
 
@@ -158,32 +100,33 @@ function bbaTestApp() {
     const row = btn.closest("tr");
 
     if (row.dataset.new === "true") {
-      if (!confirm("Do you want to delete this row?")) return;
-
+      if (!confirm("Are you sure you want to delete this row?")) return;
       row.remove();
       updateSerialNumbers();
-      alert("Deleted successfully");
       return;
     }
 
-    if (!confirm("Do you want to delete this record?")) return;
+    if (!confirm("Are you sure you want to delete this record?")) return;
 
     $.ajax({
       url: "/delete_bba_test_data",
       type: "POST",
       contentType: "application/json",
       data: JSON.stringify({ n_sr_no: row.dataset.id }),
-      success: res => {
+      success: (res) => {
         if (res.success) {
+          row.remove();
+          updateSerialNumbers();
           alert("Deleted successfully");
-          loadBbaData();
         } else {
           alert(res.message || "Delete failed");
         }
-      }
+      },
+      error: () => {
+        alert("Delete failed at server");
+      },
     });
   }
-
 
   /* ================= EDIT ================= */
   function editRow(btn) {
@@ -201,7 +144,7 @@ function bbaTestApp() {
       td.appendChild(input);
     });
 
-    [4, 5, 8, 10, 11].forEach(idx => {
+    [4, 5, 8, 10, 11].forEach((idx) => {
       const val = row.children[idx].innerText;
       row.children[idx].innerHTML = "";
       const input = document.createElement("input");
@@ -209,16 +152,17 @@ function bbaTestApp() {
       row.children[idx].appendChild(input);
     });
 
-    [6, 7].forEach(idx => {
+    [6, 7].forEach((idx) => {
       const val = row.children[idx].innerText;
       row.children[idx].innerHTML = "";
 
       const select = document.createElement("select");
-      const options = idx === 6
-        ? ["Employee", "Contractor", "Others"]
-        : ["Negative", "Positive"];
+      const options =
+        idx === 6
+          ? ["Employee", "Contractor", "Others"]
+          : ["Negative", "Positive"];
 
-      options.forEach(v => {
+      options.forEach((v) => {
         const o = document.createElement("option");
         o.value = v;
         o.text = v;
@@ -233,13 +177,27 @@ function bbaTestApp() {
     const existingType = row.dataset.fileType || "application/pdf";
     const existingName = row.dataset.fileName || "Attachment";
 
-    row.children[9].innerHTML = `
-  <input type="file" onchange="window.previewFile(this)">
-  <div class="img-preview">
-    ${existingBase64 ? `<button type="button" onclick="showFile('${existingBase64}','${existingType}','${existingName}')">View Document</button>` : ""}
-  </div>
-`;
+    row.children[9].innerHTML = "";
 
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.onchange = function () {
+      previewFile(this);
+    };
+
+    const previewDiv = document.createElement("div");
+    previewDiv.className = "img-preview";
+
+    if (existingBase64) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.innerText = "View Document";
+      btn.onclick = () => showFile(existingBase64, existingType, existingName);
+      previewDiv.appendChild(btn);
+    }
+
+    row.children[9].appendChild(fileInput);
+    row.children[9].appendChild(previewDiv);
 
     btn.disabled = true;
     btn.innerText = "Editing";
@@ -252,7 +210,7 @@ function bbaTestApp() {
     let hasNew = false;
     let hasEdit = false;
 
-    rows.forEach(row => {
+    rows.forEach((row) => {
       if (row.dataset.new === "true") hasNew = true;
       if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
     });
@@ -265,14 +223,12 @@ function bbaTestApp() {
     let confirmMsg = "Do you want to save changes?";
     if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
     if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
-    if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
+    if (hasNew && hasEdit)
+      confirmMsg = "Do you want to add and update records?";
 
     if (!confirm(confirmMsg)) return;
 
-    let saved = false;
-    let updated = false;
-
-    rows.forEach(row => {
+    rows.forEach((row) => {
       const td = row.children;
 
       const payload = {
@@ -285,54 +241,49 @@ function bbaTestApp() {
         s_test_result: td[7].querySelector("select")?.value,
         n_bac_count: td[8].querySelector("input")?.value,
         img_attachment:
-          td[9].querySelector("input")?.dataset.base64
-          || row.dataset.attachment
-          || null,
-
+          td[9].querySelector("input")?.dataset.base64 ||
+          row.dataset.attachment ||
+          null,
         s_security_personnel_name: td[10].querySelector("input")?.value,
-        s_remarks: td[11].querySelector("input")?.value
+        s_remarks: td[11].querySelector("input")?.value,
       };
 
       // INSERT
       if (row.dataset.new === "true") {
-        saved = true;
         $.ajax({
           url: "/save_bba_test_data",
-          type: "POST",
+          method: "POST",
           contentType: "application/json",
-          data: JSON.stringify(payload)
+          data: JSON.stringify(payload),
         });
       }
 
       // UPDATE
       if (row.dataset.edited === "true" && !row.dataset.new) {
-        updated = true;
         payload.n_sr_no = row.dataset.id;
         $.ajax({
           url: "/update_bba_test_data",
-          type: "POST",
+          method: "POST",
           contentType: "application/json",
-          data: JSON.stringify(payload)
+          data: JSON.stringify(payload),
         });
       }
     });
 
-
-    if (saved && updated) {
+    if (hasNew && hasEdit) {
       alert("Records added and updated successfully");
-    } else if (saved) {
+    } else if (hasNew) {
       alert("Record added successfully");
-    } else if (updated) {
+    } else {
       alert("Record updated successfully");
     }
 
     loadBbaData();
   }
 
-
   /* ================= LOAD ================= */
   function loadBbaData() {
-    $.get("/get_bba_test_data", res => {
+    $.get("/get_bba_test_data", (res) => {
       if (!res.success) return alert("Load failed");
       allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
       currentPage = 1;
@@ -348,7 +299,7 @@ function bbaTestApp() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    allData.slice(start, end).forEach(r => {
+    allData.slice(start, end).forEach((r) => {
       const tpl = cloneTemplate("bbaViewRowTemplate");
       const row = tpl.querySelector("tr");
 
@@ -420,6 +371,7 @@ function bbaTestApp() {
 
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.closePreview = closePreview;
 
   document.addEventListener("DOMContentLoaded", loadBbaData);
 }

@@ -272,3 +272,43 @@ textarea {
     border: none;
   }
 }
+/* ================= FILE PREVIEW MODAL ================= */
+.file-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.file-modal.hidden {
+  display: none;
+}
+
+.file-modal-content {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  background: #000;
+  border-radius: 6px;
+}
+
+.file-modal-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: red;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}

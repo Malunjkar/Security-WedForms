@@ -148,3 +148,20 @@ routes_bp.add_url_rule('/save_casual_labour_data',view_func=functions.save_casua
 routes_bp.add_url_rule('/get_casual_labour_data',view_func=functions.get_casual_labour_data_fn,methods=['GET'])
 routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_casual_labour_data_fn,methods=['POST'])
 routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])
+
+from flask import request
+from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
+
+@routes_bp.route("/download_filtered_excel", methods=["POST"])
+def download_filtered_excel():
+    data = request.json
+
+    table = data.get("table")
+    start = data.get("start")
+    end = data.get("end")
+
+    return download_filtered_excel_logic(table, start, end)
+
+@routes_bp.route("/get_report_tables", methods=["GET"])
+def get_report_tables():
+    return get_report_tables_fn()

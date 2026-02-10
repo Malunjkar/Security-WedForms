@@ -1,0 +1,133 @@
+/* ================= RESET & BASE ================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+}
+
+/* ================= NAVBAR ================= */
+.header-dashboard {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 60px;
+  width: 100%;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: #002244;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.hamburger-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.logo-dashboard {
+  height: 40px;
+  border-radius: 6px;
+}
+
+/* ================= PROFILE ================= */
+#profileAvatar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 50px;
+}
+
+#profileInitials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#profileAvatar span {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+/* ================= REPORTS PAGE ================= */
+
+.reports-container {
+  width: 100%;
+  padding: 0 20px;
+}
+
+/* FILTER BOX */
+.filter-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  justify-content: space-around;
+}
+
+/* FILTER ITEM */
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+}
+
+.filter-item label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.filter-item select,
+.filter-item input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* DOWNLOAD SECTION */
+.download-section {
+  margin-top: 25px;
+  text-align: center;
+}
+
+#downloadBtn {
+  padding: 12px 26px;
+  font-size: 15px;
+  font-weight: bold;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#downloadBtn:hover {
+  background: #218838;
+}

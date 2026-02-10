@@ -3,9 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reports.css') }}">
 </head>
 <body>
+      <header class="header-dashboard">
+    <div class="hamburger-dashboard">
+      ☰
+      <a href="{{ url_for('routes_bp.home') }}">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+      </a>
+
+    </div>
+
+    <h2>Reports</h2>
+
+    <div id="profileAvatar">
+      <div id="profileInitials">
+        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+      </div>
+      <span style="margin-left:8px;font-weight:bold;color:black;">
+        {{ (session.get('user') or {}).get('name','Guest User') }}</span>
+    </div>
+  </header>
+  <div class="reports-container">
+
+  <div class="filter-box">
+    <!-- TABLE DROPDOWN -->
+    <div class="filter-item">
+      <label>Table Name</label>
+      <select id="tableSelect">
+        <option value="">Select Table</option>
+        
+      </select>
+    </div>
+
+    <!-- START DATE -->
+    <div class="filter-item">
+      <label>Start Date</label>
+      <input type="date" id="startDate">
+    </div>
+
+    <!-- END DATE -->
+    <div class="filter-item">
+      <label>End Date</label>
+      <input type="date" id="endDate">
+    </div>
+  </div>
+
+  <!-- DOWNLOAD BUTTON -->
+  <div class="download-section">
+    <button id="downloadBtn">
+      ⬇ Download Excel
+    </button>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='javascript/reports.js') }}"></script>
     
 </body>
 </html>

@@ -352,3 +352,28 @@ def delete_casual_labour_data_fn():
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
+
+from flask import send_file, jsonify
+from Execute.queries import fetch_data_with_date , get_report_master_tables
+from excel_bp import write_excel
+
+def download_filtered_excel_logic(table, start, end):
+
+    if not table or not start or not end:
+        return jsonify({"success": False, "message": "Invalid input"}), 400
+
+    df = fetch_data_with_date(table, start, end)
+
+    if df.empty:
+        return jsonify({"success": False, "message": "No data found"}), 404
+
+    excel_file = write_excel(df)
+
+    return send_file(
+        excel_file,
+        as_attachment=True,
+        download_name="Filtered_Report.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+def get_report_tables_fn():
+    return jsonify(get_report_master_tables())

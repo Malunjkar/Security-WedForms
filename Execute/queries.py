@@ -1548,3 +1548,156 @@ def delete_casual_labour_data(data, username="system"):
         conn.rollback()
         return False, str(e)
 
+# ------------ report code ------------
+import pandas as pd
+from Execute.executesql import get_connection
+
+
+# =====================================================
+# REPORT MASTER TABLE CONFIG
+# =====================================================
+
+REPORT_TABLES = [
+    {
+        "table": "Patrolling_Observation_Register",
+        "label": "Patrolling Observation Register",
+        "date_column": "d_patrol_date"
+    },
+    {
+        "table": "BAA_Test_Record_Register",
+        "label": "BBA Test Record Register",
+        "date_column": "d_test_date"
+    },
+    {
+        "table": "PIPELINE_MITRA_REGISTER",
+        "label": "Pipeline Mitra Register",
+        "date_column": "d_entry_date"
+    },
+    {
+        "table": "VEHICLE_CHECKLIST_MASTER",
+        "label": "Vehicle Checklist Register",
+        "date_column": "dt_entry_datetime"
+    },
+    {
+        "table": "VISITOR_DECLARATION_SLIP_MASTER",
+        "label": "Visitor Declaration Register",
+        "date_column": "dt_visit_datetime"
+    },
+    {
+        "table": "CASUAL_LABOUR_LIST_MASTER",
+        "label": "Casual Labour Register",
+        "date_column": "dt_work_datetime"
+    }
+]
+
+
+REPORT_COLUMNS = {
+    "Patrolling_Observation_Register": [
+        ("s_location_code", "Location Code"),
+        ("d_patrol_date", "Patrol Date"),
+        ("t_from_time", "From Time"),
+        ("t_to_time", "To Time"),
+        ("s_boundary_wall_condition", "Boundary Wall Condition"),
+        ("s_patrolling_pathway_condition", "Patrolling Pathway Condition"),
+        ("s_suspicious_movement", "Suspicious Movement"),
+        ("s_wild_vegetation", "Wild Vegetation"),
+        ("s_illumination_status", "Illumination Status"),
+        ("s_workers_without_valid_permit", "Workers Without Permit"),
+        ("s_unknown_person_without_authorization", "Unknown Person Without Authorization"),
+        ("s_unattended_office_unlocked", "Unattended Office Unlocked"),
+        ("s_other_observations_status", "Other Observations"),
+        ("s_remarks", "Remarks"),
+        ("s_patrolling_guard_name", "Guard Name")
+    ],
+
+    "BAA_Test_Record_Register": [
+        ("s_location_code", "Location Code"),
+        ("d_test_date", "Test Date"),
+        ("t_test_time", "Test Time"),
+        ("s_test_record_no", "Test Record No"),
+        ("s_individual_name", "Individual Name"),
+        ("s_person_type", "Person Type"),
+        ("s_test_result", "Test Result"),
+        ("n_bac_count", "BAC Count"),
+        ("s_security_personnel_name", "Security Personnel"),
+        ("s_remarks", "Remarks")
+    ],
+
+    "PIPELINE_MITRA_REGISTER": [
+        ("s_location_code", "Location Code"),
+        ("d_entry_date", "Entry Date"),
+        ("s_chainage_no", "Chainage No"),
+        ("s_pm_name", "Mitra Name"),
+        ("s_pm_village_name", "Village Name"),
+        ("s_pm_mobile_no", "Mobile No"),
+        ("s_remarks", "Remarks")
+    ],
+
+    "VEHICLE_CHECKLIST_MASTER": [
+        ("s_location_code", "Location Code"),
+        ("dt_entry_datetime", "Entry Date & Time"),
+        ("s_vehicle_no", "Vehicle No"),
+        ("s_vehicle_type", "Vehicle Type"),
+        ("s_driver_name", "Driver Name"),
+        ("s_contact_no", "Contact No"),
+        ("s_occupants_name", "Occupants Name"),
+        ("s_purpose_of_entry", "Purpose of Entry")
+    ],
+
+    "VISITOR_DECLARATION_SLIP_MASTER": [
+        ("s_location", "Location"),
+        ("dt_visit_datetime", "Visit Date & Time"),
+        ("s_visitor_name", "Visitor Name"),
+        ("s_visitor_pass_no", "Visitor Pass No"),
+        ("s_whom_to_meet", "Whom To Meet")
+    ],
+
+    "CASUAL_LABOUR_LIST_MASTER": [
+        ("s_location", "Location"),
+        ("s_contractor_name", "Contractor Name"),
+        ("s_nature_of_work", "Nature Of Work"),
+        ("s_place_of_work", "Place Of Work"),
+        ("dt_work_datetime", "Work Date & Time")
+    ]
+}
+
+
+def fetch_data_with_date(table, start_date, end_date):
+    conn = get_connection()
+
+    table_cfg = next(
+        (t for t in REPORT_TABLES if t["table"] == table),
+        None
+    )
+
+    if not table_cfg:
+        raise Exception("Invalid report table")
+
+    cols = REPORT_COLUMNS.get(table)
+    if not cols:
+        raise Exception("No columns configured for report")
+
+    db_columns = [c[0] for c in cols]
+    display_columns = [c[1] for c in cols]
+
+    date_column = table_cfg["date_column"]
+    col_sql = ", ".join(f"[{c}]" for c in db_columns)
+
+    query = f"""
+        SELECT {col_sql}
+        FROM {table}
+        WHERE {date_column} BETWEEN ? AND ?
+    """
+
+    df = pd.read_sql(query, conn, params=[start_date, end_date])
+    conn.close()
+
+    df.columns = display_columns
+    return df
+
+
+def get_report_master_tables():
+    return [
+        {"value": t["table"], "label": t["label"]}
+        for t in REPORT_TABLES
+    ]

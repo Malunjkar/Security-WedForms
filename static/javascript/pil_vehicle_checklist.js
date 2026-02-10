@@ -75,13 +75,19 @@ function vehicleChecklistApp() {
         <td>${r.s_contact_no || ""}</td>
         <td>${r.s_purpose_of_entry || ""}</td>
         <td>
-          <button class="icon-btn edit">
-            <i class="fa fa-pen"></i>
-          </button>
-          <button class="icon-btn delete">
-            <i class="fa fa-trash"></i>
-          </button>
-        </td>
+  <button class="icon-btn edit" title="Edit">
+    <i class="fa fa-pen"></i>
+  </button>
+
+  <button class="icon-btn delete" title="Delete">
+    <i class="fa fa-trash"></i>
+  </button>
+
+  <button class="icon-btn download" title="Download Checklist">
+    <i class="fa fa-download"></i>
+  </button>
+</td>
+
       </tr>
     `);
 
@@ -118,6 +124,17 @@ function vehicleChecklistApp() {
   $("#s_contact_no").on("input", function () {
     this.value = this.value.replace(/[^0-9]/g, "").slice(0, 10);
   });
+
+  $("#masterTable").on("click", ".icon-btn.download", function () {
+  const record = $(this).closest("tr").data("record");
+
+  if (!record || !record.checklist || record.checklist.length === 0) {
+    alert("No checklist data available for this vehicle.");
+    return;
+  }
+
+  downloadChecklistExcel(record);
+});
 
 
   /* ============ VIEW SWITCH ============ */
@@ -362,8 +379,169 @@ function vehicleChecklistApp() {
       }
     });
   });
+
+
+  /* ================= DOWNLOAD CHECKLIST (ROW LEVEL) ================= */
+/* ================= DOWNLOAD CHECKLIST (SINGLE RECORD – CLEAN FORMAT) ================= */
+async function downloadChecklistExcel(record) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Vehicle Checklist");
+
+  let rowIndex = 1;
+
+  // ===== MASTER DETAILS (ONCE) =====
+  worksheet.getCell(`A${rowIndex}`).value = "Vehicle No";
+  worksheet.getCell(`B${rowIndex}`).value = record.s_vehicle_no ?? "";
+  rowIndex++;
+
+  worksheet.getCell(`A${rowIndex}`).value = "Vehicle Type";
+  worksheet.getCell(`B${rowIndex}`).value = record.s_vehicle_type ?? "";
+  rowIndex++;
+
+  worksheet.getCell(`A${rowIndex}`).value = "Driver Name";
+  worksheet.getCell(`B${rowIndex}`).value = record.s_driver_name ?? "";
+  rowIndex++;
+
+  worksheet.getCell(`A${rowIndex}`).value = "Contact No";
+  worksheet.getCell(`B${rowIndex}`).value = record.s_contact_no ?? "";
+  rowIndex++;
+
+  worksheet.getCell(`A${rowIndex}`).value = "Entry Date / Time";
+  worksheet.getCell(`B${rowIndex}`).value = record.dt_entry_datetime ?? "";
+  rowIndex += 2; // blank line
+
+  // ===== BOLD MASTER LABELS =====
+  for (let i = 1; i <= 5; i++) {
+    worksheet.getCell(`A${i}`).font = { bold: true };
+  }
+
+  // ===== CHECKLIST TABLE HEADER =====
+  worksheet.getRow(rowIndex).values = [
+    "Checklist Item",
+    "Status",
+    "Remark"
+  ];
+
+  worksheet.getRow(rowIndex).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  rowIndex++;
+
+  // ===== CHECKLIST DATA (REPEATING) =====
+  record.checklist.forEach(c => {
+    worksheet.getRow(rowIndex).values = [
+      c.s_check_label ?? "",
+      c.s_status === "Y" ? "Yes" : "No",
+      c.s_remark ?? ""
+    ];
+    rowIndex++;
+  });
+
+  // ===== AUTO COLUMN WIDTH =====
+  worksheet.columns.forEach(col => {
+    let max = 15;
+    col.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > max) max = len;
+    });
+    col.width = max + 2;
+  });
+
+  // ===== DOWNLOAD FILE =====
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const safeVehicleNo = (record.s_vehicle_no || "Vehicle")
+    .replace(/[^a-zA-Z0-9]/g, "_");
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Vehicle_${safeVehicleNo}_Checklist.xlsx`;
+  link.click();
+}
+
+/* ================= DOWNLOAD ================= */
+
+async function downloadTable() {
+  if (!allData.length) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Vehicle Entry Register");
+
+  // ===== HEADERS (EXACTLY LIKE UI TABLE) =====
+  const headers = [
+    "Sr No",
+    "Location",
+    "Date / Time",
+    "Vehicle No",
+    "Vehicle Type",
+    "Driver Name",
+    "Contact No",
+    "Purpose of Entry"
+  ];
+
+  worksheet.addRow(headers);
+
+  // ===== DATA (ALL RECORDS, MASTER ONLY) =====
+  allData.forEach((r, index) => {
+    worksheet.addRow([
+      index + 1,
+      r.s_location_code ?? "",
+      r.dt_entry_datetime ?? "",
+      r.s_vehicle_no ?? "",
+      r.s_vehicle_type ?? "",
+      r.s_driver_name ?? "",
+      r.s_contact_no ?? "",
+      r.s_purpose_of_entry ?? ""
+    ]);
+  });
+
+  // ===== BOLD HEADER ROW =====
+  worksheet.getRow(1).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  });
+
+  // ===== BOLD SR NO COLUMN =====
+  worksheet.getColumn(1).eachCell((cell, rowNumber) => {
+    if (rowNumber !== 1) {
+      cell.font = { bold: true };
+    }
+  });
+
+  // ===== AUTO COLUMN WIDTH =====
+  worksheet.columns.forEach(column => {
+    let maxLength = 10;
+    column.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > maxLength) maxLength = len;
+    });
+    column.width = maxLength + 2;
+  });
+
+  // ===== DOWNLOAD =====
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Vehicle_Entry_Register.xlsx";
+  link.click();
+}
+
+
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+window.downloadTable = downloadTable;
 
 
   loadData();

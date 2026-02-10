@@ -81,12 +81,12 @@ function bbaTestApp() {
   }
 
   function updateSerialNumbers() {
-    const rows = document.querySelectorAll("#bbaTable tbody tr");
-    const total = rows.length;
-    rows.forEach((row, i) => {
-      row.querySelector(".sr-no").innerText = total - i;
-    });
-  }
+  const rows = document.querySelectorAll("#bbaTable tbody tr");
+  rows.forEach((row, i) => {
+    row.querySelector(".sr-no").innerText = i + 1;
+  });
+}
+
 
   function openFromInput(btn) {
     const input = btn.closest("td").querySelector("input[type='file']");
@@ -385,6 +385,103 @@ function bbaTestApp() {
     }
   }
 
+ /* ================= DOWNLOAD ================= */
+async function downloadTable() {
+  if (!allData.length) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("BBA Test Register");
+
+  /* ===== TITLE ===== */
+  worksheet.mergeCells(1, 1, 1, 12);
+  worksheet.getCell("A1").value = "BBA Test Record Register";
+  worksheet.getCell("A1").font = { bold: true, size: 16 };
+  worksheet.getCell("A1").alignment = {
+    horizontal: "center",
+    vertical: "middle"
+  };
+  worksheet.getRow(1).height = 30;
+
+  /* ===== 3 BLANK ROWS ===== */
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+
+  /* ===== HEADERS ===== */
+  const headers = [
+    "Sr No",
+    "Location",
+    "Test Date",
+    "Test Time",
+    "Test Record No",
+    "Individual Name",
+    "Person Type",
+    "Test Result",
+    "BAC Count",
+    "Attachment Available",
+    "Security",
+    "Remarks"
+  ];
+
+  const headerRowIndex = worksheet.lastRow.number + 1;
+  worksheet.addRow(headers);
+
+  worksheet.getRow(headerRowIndex).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = {
+      wrapText: true,
+      vertical: "middle",
+      horizontal: "center"
+    };
+  });
+  worksheet.getRow(headerRowIndex).height = 40;
+
+  /* ===== DATA ===== */
+  let srNo = 1;
+  allData.forEach(r => {
+    worksheet.addRow([
+      srNo++,
+      r.s_location_code ?? "",
+      r.d_test_date ?? "",
+      r.t_test_time ?? "",
+      r.s_test_record_no ?? "",
+      r.s_individual_name ?? "",
+      r.s_person_type ?? "",
+      r.s_test_result ?? "",
+      r.n_bac_count ?? "",
+      r.img_attachment ? "Yes" : "No",
+      r.s_security_personnel_name ?? "",
+      r.s_remarks ?? ""
+    ]);
+  });
+
+  /* ===== COLUMN WIDTH ===== */
+  worksheet.columns.forEach(column => {
+    let maxLength = 12;
+    column.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > maxLength) maxLength = len;
+    });
+    column.width = Math.min(maxLength + 2, 30);
+  });
+
+  /* ===== DOWNLOAD ===== */
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "BBA_Test_Record_Register.xlsx";
+  link.click();
+}
+
+
+
   /* ================= EXPOSE ================= */
   window.addRow = addRow;
   window.saveTable = saveTable;
@@ -392,6 +489,7 @@ function bbaTestApp() {
   window.deleteRow = deleteRow;
   window.previewFile = previewFile;
   window.showFile = showFile;
+  window.downloadTable = downloadTable;
 
   window.nextPage = nextPage;
   window.prevPage = prevPage;

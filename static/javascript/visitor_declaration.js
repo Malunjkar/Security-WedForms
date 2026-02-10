@@ -46,6 +46,9 @@ function visitorDeclarationApp() {
         <td>
           <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
           <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
+          <button class="icon-btn download" title="Download Visitor Slip">
+    <i class="fa-solid fa-download"></i>
+  </button>
         </td>
       </tr>
     `);
@@ -169,6 +172,7 @@ function visitorDeclarationApp() {
 </button>
 
 
+
         </tr>
       `);
     });
@@ -243,8 +247,150 @@ function visitorDeclarationApp() {
       }
     });
   });
+
+  /* ============ Download============ */
+  $("#masterTable").on("click", ".icon-btn.download", function () {
+  const record = $(this).closest("tr").data("record");
+
+  if (!record || !record.items || record.items.length === 0) {
+    alert("No item details available for this visitor.");
+    return;
+  }
+
+  downloadVisitorSlipExcel(record);
+});
+
+async function downloadVisitorSlipExcel(record) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Visitor Slip");
+
+  let row = 1;
+
+  /* ===== VISITOR DETAILS (ONCE) ===== */
+  const masterFields = [
+    ["Location", record.s_location ?? ""],
+    ["Visitor Name", record.s_visitor_name ?? ""],
+    ["Visitor Pass No", record.s_visitor_pass_no ?? ""],
+    ["Whom To Meet", record.s_whom_to_meet ?? ""],
+    ["Visit Date / Time", record.dt_visit_datetime ?? ""]
+  ];
+
+  masterFields.forEach(([label, value]) => {
+    worksheet.getCell(`A${row}`).value = label;
+    worksheet.getCell(`A${row}`).font = { bold: true };
+    worksheet.getCell(`B${row}`).value = value;
+    row++;
+  });
+
+  row += 1; // blank line
+
+  /* ===== ITEM TABLE HEADER ===== */
+  worksheet.getRow(row).values = [
+    "Item Description",
+    "UOM",
+    "Quantity"
+  ];
+
+  worksheet.getRow(row).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  row++;
+
+  /* ===== ITEM DATA (REPEATING) ===== */
+  (record.items || []).forEach(i => {
+    worksheet.getRow(row).values = [
+      i.s_item_code_description ?? "",
+      i.s_uom ?? "",
+      i.n_quantity ?? ""
+    ];
+    row++;
+  });
+
+  /* ===== AUTO COLUMN WIDTH ===== */
+  worksheet.columns.forEach(col => {
+    let max = 15;
+    col.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > max) max = len;
+    });
+    col.width = max + 2;
+  });
+
+  /* ===== DOWNLOAD ===== */
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Visitor_Declaration_Slip.xlsx";
+  link.click();
+}
+
+/* ================= BULK DOWNLOAD (LIST VIEW ONLY) ================= */
+async function downloadTable() {
+  if (!allData || allData.length === 0) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Visitor Declaration Register");
+
+  // ===== TABLE HEADERS (EXACT UI MATCH) =====
+  const headers = [
+    "Location",
+    "Visitor Name",
+    "Pass No",
+    "Date / Time"
+  ];
+
+  worksheet.addRow(headers);
+
+  // ===== TABLE DATA (NO INTERNAL FIELDS) =====
+  allData.forEach(r => {
+    worksheet.addRow([
+      r.s_location ?? "",
+      r.s_visitor_name ?? "",
+      r.s_visitor_pass_no ?? "",
+      r.dt_visit_datetime ?? ""
+    ]);
+  });
+
+  // ===== HEADER STYLING =====
+  worksheet.getRow(1).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+  });
+
+  // ===== AUTO COLUMN WIDTH =====
+  worksheet.columns.forEach(col => {
+    let max = 12;
+    col.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > max) max = len;
+    });
+    col.width = max + 2;
+  });
+
+  // ===== DOWNLOAD FILE =====
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Visitor_Declaration_Register.xlsx";
+  link.click();
+}
+
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.downloadTable = downloadTable;
 
 
   loadData();

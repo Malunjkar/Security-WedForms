@@ -69,6 +69,10 @@
       <!-- Add button at bottom center -->
       <div class="table-footer">
         <button class="btn-add" onclick="openAddForm()">Add Data</button>
+        <button class="btn-download" onclick="downloadTable()">
+  <i class="fa-solid fa-download"></i> Download
+</button>
+
       </div>
 
     </div>
@@ -200,10 +204,12 @@
       <br>
 
       <button class="btn-save" onclick="saveData()">Save</button>
+      
     </div>
 
   </div>
   <script>const USER_LOCATION = "{{ session['user']['location'] }}";</script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/casual_labour.js') }}"></script>
 

@@ -6,18 +6,25 @@ import pandas as pd
 def write_excel(df: pd.DataFrame):
     """
     Converts a pandas DataFrame into an Excel file (BytesIO)
-    - Shows ONLY non-deleted data (n_flag = 1)
+    - Shows ONLY non-deleted data
+        n_flag = 1
+        delete_flag = 0
     - Handles NaT / NaN safely
     - Adds auto Sr No
     - Applies formatting
     """
 
     # -------------------------------------------------
-    # FILTER NON-DELETED RECORDS (SOFT DELETE)
+    # FILTER NON-DELETED RECORDS (SOFT DELETE LOGIC)
     # -------------------------------------------------
     if "n_flag" in df.columns:
         df = df[df["n_flag"] == 1]
-        df = df.drop(columns=["n_flag"])
+
+    if "delete_flag" in df.columns:
+        df = df[df["delete_flag"] == 0]
+
+    # Remove control columns from Excel
+    df = df.drop(columns=[c for c in ["n_flag", "delete_flag"] if c in df.columns])
 
     # -------------------------------------------------
     # CLEAN DATA (NaT / NaN)
@@ -57,16 +64,20 @@ def write_excel(df: pd.DataFrame):
     text_fmt = workbook.add_format({
         "border": 1,
         "text_wrap": True,
-        "align": "left",
-        "valign": "top"
+        "align": "center",    
+        "valign": "vcenter"  
     })
+
 
     header_fmt = workbook.add_format({
         "border": 1,
         "bold": True,
         "align": "center",
-        "valign": "middle"
+        "valign": "middle",
+        "bg_color": "#007bff",  
+        "font_color": "#ffffff"   
     })
+
 
     # Header formatting
     for col_idx, col_name in enumerate(df.columns):

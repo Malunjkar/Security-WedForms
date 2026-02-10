@@ -1561,34 +1561,41 @@ REPORT_TABLES = [
     {
         "table": "Patrolling_Observation_Register",
         "label": "Patrolling Observation Register",
-        "date_column": "d_patrol_date"
+        "date_column": "d_patrol_date",
+        "where": "ISNULL(delete_flag,0) = 0"
     },
     {
         "table": "BAA_Test_Record_Register",
         "label": "BBA Test Record Register",
-        "date_column": "d_test_date"
+        "date_column": "d_test_date",
+        "where": "ISNULL(delete_flag,0) = 0"
     },
     {
         "table": "PIPELINE_MITRA_REGISTER",
         "label": "Pipeline Mitra Register",
-        "date_column": "d_entry_date"
+        "date_column": "d_entry_date",
+        "where": "ISNULL(delete_flag,0) = 0"
     },
     {
         "table": "VEHICLE_CHECKLIST_MASTER",
         "label": "Vehicle Checklist Register",
-        "date_column": "dt_entry_datetime"
+        "date_column": "dt_entry_datetime",
+        "where": "n_flag = 1"
     },
     {
         "table": "VISITOR_DECLARATION_SLIP_MASTER",
         "label": "Visitor Declaration Register",
-        "date_column": "dt_visit_datetime"
+        "date_column": "dt_visit_datetime",
+        "where": "n_flag = 1"
     },
     {
         "table": "CASUAL_LABOUR_LIST_MASTER",
         "label": "Casual Labour Register",
-        "date_column": "dt_work_datetime"
+        "date_column": "dt_work_datetime",
+        "where": "n_flag = 1"
     }
 ]
+
 
 
 REPORT_COLUMNS = {
@@ -1681,12 +1688,16 @@ def fetch_data_with_date(table, start_date, end_date):
     display_columns = [c[1] for c in cols]
 
     date_column = table_cfg["date_column"]
+    where_clause = table_cfg.get("where", "1=1")
+
     col_sql = ", ".join(f"[{c}]" for c in db_columns)
 
     query = f"""
         SELECT {col_sql}
         FROM {table}
-        WHERE {date_column} BETWEEN ? AND ?
+        WHERE {where_clause}
+          AND {date_column} >= ?
+          AND {date_column} < DATEADD(day, 1, ?)
     """
 
     df = pd.read_sql(query, conn, params=[start_date, end_date])

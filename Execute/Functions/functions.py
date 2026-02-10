@@ -377,3 +377,15 @@ def download_filtered_excel_logic(table, start, end):
     )
 def get_report_tables_fn():
     return jsonify(get_report_master_tables())
+
+def download_filtered_excel():
+    data = request.json
+
+    table = data.get("table")
+    start = data.get("start")
+    end = data.get("end")
+
+    return download_filtered_excel_logic(table, start, end)
+
+def get_report_tables():
+    return get_report_tables_fn()

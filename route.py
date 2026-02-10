@@ -4,6 +4,7 @@ from flask import request, send_file
 from Execute.vehicle_checklist_export import generate_vehicle_checklist_excel
 from Execute.vehicle_checklist_pdf import generate_vehicle_checklist_pdf
 from Execute.visitor_slip_pdf import generate_visitor_slip_pdf
+from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
 
 routes_bp = Blueprint('routes_bp', __name__)
 
@@ -149,19 +150,7 @@ routes_bp.add_url_rule('/get_casual_labour_data',view_func=functions.get_casual_
 routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_casual_labour_data_fn,methods=['POST'])
 routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])
 
-from flask import request
-from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
+#----------- report excel_bp --------------
+routes_bp.add_url_rule('/download_filtered_excel',view_func=functions.download_filtered_excel,methods=['POST'])
+routes_bp.add_url_rule('/get_report_tables',view_func=functions.get_report_tables,methods=['GET'])
 
-@routes_bp.route("/download_filtered_excel", methods=["POST"])
-def download_filtered_excel():
-    data = request.json
-
-    table = data.get("table")
-    start = data.get("start")
-    end = data.get("end")
-
-    return download_filtered_excel_logic(table, start, end)
-
-@routes_bp.route("/get_report_tables", methods=["GET"])
-def get_report_tables():
-    return get_report_tables_fn()

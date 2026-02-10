@@ -297,3 +297,16 @@ button {
 .field textarea {
   width: 100%;
 }
+.btn-download {
+    background: #28a745;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-download:hover {
+    background: #218838;
+}

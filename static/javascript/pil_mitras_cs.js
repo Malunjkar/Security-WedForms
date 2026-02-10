@@ -20,13 +20,13 @@ function pipelineMitraApp() {
   }
 
   function updateSerialNumbers() {
-    const rows = document.querySelectorAll("#mitraTable tbody tr");
-    const total = rows.length;
-    rows.forEach((row, i) => {
-      const cell = row.querySelector(".sr-no");
-      if (cell) cell.innerText = total - i;
-    });
-  }
+  const rows = document.querySelectorAll("#mitraTable tbody tr");
+  rows.forEach((row, i) => {
+    const cell = row.querySelector(".sr-no");
+    if (cell) cell.innerText = i + 1;
+  });
+}
+
 
   /* ================= LOAD ================= */
 
@@ -65,7 +65,7 @@ function pipelineMitraApp() {
 
       row.dataset.id = r.n_sr_no;
 
-      row.querySelector(".sr-no").innerText = r.n_sr_no;
+      
       row.querySelector(".loc").innerText = r.s_location_code || "";
       row.querySelector(".date").innerText = r.d_entry_date || "";
       row.querySelector(".chainage").innerText = r.s_chainage_no || "";
@@ -257,6 +257,92 @@ if (row.dataset.edited && !row.dataset.new) {
 }
 
 
+/* ================= DOWNLOAD ================= */
+async function downloadTable() {
+  if (!allData.length) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Pipeline Mitra Register");
+
+  /* ===== TITLE ===== */
+  worksheet.mergeCells(1, 1, 1, 8);
+  worksheet.getCell("A1").value = "Pipeline Mitra Register";
+  worksheet.getCell("A1").font = { bold: true, size: 16 };
+  worksheet.getCell("A1").alignment = {
+    horizontal: "center",
+    vertical: "middle"
+  };
+  worksheet.getRow(1).height = 30;
+
+  /* ===== 1 BLANK ROW ===== */
+  worksheet.addRow([]);
+
+  /* ===== HEADERS ===== */
+  const headers = [
+    "Sr No",
+    "Location",
+    "Date",
+    "Chainage No",
+    "Pipeline Mitra Name",
+    "Village Name",
+    "Mobile No",
+    "Remarks"
+  ];
+
+  const headerRowIndex = worksheet.lastRow.number + 1;
+  worksheet.addRow(headers);
+
+  worksheet.getRow(headerRowIndex).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = {
+      wrapText: true,
+      vertical: "middle",
+      horizontal: "center"
+    };
+  });
+  worksheet.getRow(headerRowIndex).height = 35;
+
+  /* ===== DATA ===== */
+  let srNo = 1;
+  allData.forEach(r => {
+    worksheet.addRow([
+      srNo++,
+      r.s_location_code ?? "",
+      r.d_entry_date ?? "",
+      r.s_chainage_no ?? "",
+      r.s_pm_name ?? "",
+      r.s_pm_village_name ?? "",
+      r.s_pm_mobile_no ?? "",
+      r.s_remarks ?? ""
+    ]);
+  });
+
+  /* ===== COLUMN WIDTH ===== */
+  worksheet.columns.forEach(column => {
+    let maxLength = 12;
+    column.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > maxLength) maxLength = len;
+    });
+    column.width = Math.min(maxLength + 2, 30);
+  });
+
+  /* ===== DOWNLOAD ===== */
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Pipeline_Mitra_Register.xlsx";
+  link.click();
+}
+
+
   /* ================= EXPOSE ================= */
 
   window.addRow = addRow;
@@ -265,6 +351,8 @@ if (row.dataset.edited && !row.dataset.new) {
   window.deleteRow = deleteRow;
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.downloadTable = downloadTable;
+
 
   loadData();
 }

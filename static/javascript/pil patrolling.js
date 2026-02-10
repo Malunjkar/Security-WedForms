@@ -286,6 +286,129 @@ function patrollingApp() {
 }
 
 
+/* ================= DOWNLOAD ================= */
+async function downloadTable() {
+  
+  if (!allData.length) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Patrolling Observation");
+  // ===== TITLE AT TOP =====
+worksheet.mergeCells(1, 1, 1, 16); // 16 columns
+worksheet.getCell("A1").value = "Patrolling Observation Register";
+worksheet.getCell("A1").font = { bold: true, size: 16 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
+worksheet.getRow(1).height = 30;
+
+// ===== 3 BLANK ROWS =====
+worksheet.addRow([]);
+worksheet.addRow([]);
+worksheet.addRow([]);
+
+
+  // ===== HEADERS =====
+  const headers = [
+    "Sr No",
+    "Location",
+    "Date",
+    "From Time",
+    "To Time",
+    "Condition of boundary wall / fencing / gates / infrastructure",
+    "Condition of patrolling pathway",
+    "Any Suspicious Movement",
+    "Wild Vegetation",
+    "Illumination Status",
+    "Workers working without valid work permit",
+    "Any unknown person without authorized entry permits",
+    "Any unattended office in unlocked condition (Silent Hours)",
+    "Any other observations",
+    "Remarks",
+    "Name of patrolling guard	"
+  ];
+
+  const headerRowIndex = worksheet.lastRow.number + 1;
+worksheet.addRow(headers);
+
+
+  // ===== DATA =====
+  let srNo = 1;
+  allData.forEach(r => {
+    worksheet.addRow([
+      srNo++,   
+      r.s_location_code ?? "",
+      r.d_patrol_date ?? "",
+      r.t_from_time ?? "",
+      r.t_to_time ?? "",
+      r.s_boundary_wall_condition ?? "",
+      r.s_patrolling_pathway_condition ?? "",
+      r.s_suspicious_movement ?? "",
+      r.s_wild_vegetation ?? "",
+      r.s_illumination_status ?? "",
+      r.s_workers_without_valid_permit ?? "",
+      r.s_unknown_person_without_authorization ?? "",
+      r.s_unattended_office_unlocked ?? "",
+      r.s_other_observations_status ?? "",
+      r.s_remarks ?? "",
+      r.s_patrolling_guard_name ?? ""
+    ]);
+  });
+
+  // ===== STYLE HEADER ROW =====
+ worksheet.getRow(headerRowIndex).eachCell(cell => {
+  cell.font = { bold: true };
+  cell.alignment = {
+    wrapText: true,
+    vertical: "middle",
+    horizontal: "center"
+  };
+});
+worksheet.getRow(headerRowIndex).height = 40;
+
+
+// Optional: better header height
+worksheet.getRow(1).height = 40;
+
+
+  // ===== STYLE SR NO COLUMN =====
+  worksheet.getColumn(1).eachCell((cell, rowNumber) => {
+    if (rowNumber !== 1) {
+      cell.font = { bold: true };
+    }
+  });
+
+  // ===== AUTO COLUMN WIDTH =====
+  worksheet.columns.forEach(column => {
+  let maxLength = 12; // minimum readable width
+
+  column.eachCell({ includeEmpty: true }, cell => {
+    const len = cell.value ? cell.value.toString().length : 0;
+    if (len > maxLength) maxLength = len;
+  });
+
+  column.width = Math.min(maxLength + 2, 30); 
+});
+
+
+  // ===== DOWNLOAD =====
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Patrolling_Observation_Register.xlsx";
+  link.click();
+}
+
+
+
   /* ================= EXPOSE ================= */
 
   window.addRow = addRow;
@@ -294,6 +417,7 @@ function patrollingApp() {
   window.deleteRow = deleteRow;
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.downloadTable = downloadTable;
 
   loadPatrollingData();
 }

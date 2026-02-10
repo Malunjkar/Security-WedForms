@@ -36,6 +36,18 @@ function casualLabourApp() {
   }
 
 
+  $("#masterTable").on("click", ".icon-btn.download", function () {
+  const record = $(this).closest("tr").data("record");
+
+  if (!record || !record.labours || record.labours.length === 0) {
+    alert("No labour data available for this record.");
+    return;
+  }
+
+  downloadLabourDetailsExcel(record);
+});
+
+
 
   $("#labour_mobile").on("input", function () {
     this.value = this.value.replace(/\D/g, "").slice(0, 10);
@@ -89,13 +101,19 @@ function casualLabourApp() {
           <td>${r.s_nature_of_work || ""}</td>
           <td>${r.dt_work_datetime || ""}</td>
           <td class="action-col">
-            <button class="icon-btn edit">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button class="icon-btn delete">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
+  <button class="icon-btn edit" title="Edit">
+    <i class="fa-solid fa-pen"></i>
+  </button>
+
+  <button class="icon-btn delete" title="Delete">
+    <i class="fa-solid fa-trash"></i>
+  </button>
+
+  <button class="icon-btn download" title="Download Labour Details">
+    <i class="fa-solid fa-download"></i>
+  </button>
+</td>
+
         </tr>
       `);
 
@@ -125,6 +143,9 @@ function casualLabourApp() {
         <td class="action-col">
           <button class="icon-btn edit"><i class="fa-solid fa-pen"></i></button>
           <button class="icon-btn delete"><i class="fa-solid fa-trash"></i></button>
+          <button class="icon-btn download" title="Download Labour Details">
+    <i class="fa-solid fa-download"></i>
+  </button>
         </td>
       </tr>
     `);
@@ -456,9 +477,147 @@ if (editingLabourIndex !== null) {
     });
   });
 
+  /* ================= DOWNLOAD LABOUR DETAILS (SINGLE RECORD) ================= */
+async function downloadLabourDetailsExcel(record) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Labour Details");
+
+  let row = 1;
+
+  // ===== MASTER DETAILS (ONCE) =====
+  const masterFields = [
+    ["Location", record.s_location ?? ""],
+    ["Contractor Name", record.s_contractor_name ?? ""],
+    ["Nature of Work", record.s_nature_of_work ?? ""],
+    ["Place of Work", record.s_place_of_work ?? ""],
+    ["Work Date / Time", record.dt_work_datetime ?? ""]
+  ];
+
+  masterFields.forEach(([label, value]) => {
+    worksheet.getCell(`A${row}`).value = label;
+    worksheet.getCell(`A${row}`).font = { bold: true };
+    worksheet.getCell(`B${row}`).value = value;
+    row++;
+  });
+
+  row += 1; // blank line
+
+  // ===== LABOUR TABLE HEADER =====
+  worksheet.getRow(row).values = [
+    "Labour Name",
+    "Age",
+    "Sex",
+    "Address",
+    "Mobile No",
+    "ID Type",
+    "Govt ID No"
+  ];
+
+  worksheet.getRow(row).eachCell(cell => {
+    cell.font = { bold: true };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  row++;
+
+  // ===== LABOUR DATA (REPEATING) =====
+  (record.labours || []).forEach(l => {
+    worksheet.getRow(row).values = [
+      l.s_labour_name ?? "",
+      l.n_age ?? "",
+      l.s_sex ?? "",
+      l.s_address ?? "",
+      l.s_mobile_no ?? "",
+      l.s_id_type ?? "",
+      l.s_govt_id_no ?? ""
+    ];
+    row++;
+  });
+
+  // ===== AUTO COLUMN WIDTH =====
+  worksheet.columns.forEach(col => {
+    let max = 15;
+    col.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > max) max = len;
+    });
+    col.width = max + 2;
+  });
+
+  // ===== DOWNLOAD =====
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Casual_Labour_Details.xlsx";
+  link.click();
+}
+
+
+  /* ================= DOWNLOAD ================= */
+
+async function downloadTable() {
+  if (!allData.length) {
+    alert("No data available to download");
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Casual Labour Register");
+
+  const headers = [
+    "Location",
+    "Contractor",
+    "Nature of Work",
+    "Place of Work",
+    "Date / Time"
+  ];
+
+  worksheet.addRow(headers);
+
+  allData.forEach(r => {
+    worksheet.addRow([
+      r.s_location ?? "",
+      r.s_contractor_name ?? "",
+      r.s_nature_of_work ?? "",
+      r.s_place_of_work ?? "",
+      r.dt_work_datetime ?? ""
+    ]);
+  });
+
+  worksheet.getRow(1).eachCell(cell => {
+    cell.font = { bold: true };
+  });
+
+  worksheet.columns.forEach(col => {
+    let max = 15;
+    col.eachCell({ includeEmpty: true }, cell => {
+      const len = cell.value ? cell.value.toString().length : 0;
+      if (len > max) max = len;
+    });
+    col.width = max + 2;
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Casual_Labour_Register.xlsx";
+  link.click();
+}
+
+
   /* ================= INIT ================= */
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.downloadTable = downloadTable;
+
   loadData();
 }
 

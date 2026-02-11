@@ -1,5 +1,7 @@
-from flask import request, jsonify, session
+from flask import request, jsonify, session , send_file
 from Execute import queries
+from Execute.queries import fetch_data_with_date, get_report_master_tables
+from excel_bp import write_excel
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -353,10 +355,9 @@ def delete_casual_labour_data_fn():
     except Exception as e:
         return error_response(str(e), 500)
 
-from flask import send_file, jsonify, request
-from Execute.queries import fetch_data_with_date, get_report_master_tables
-from excel_bp import write_excel
-
+# =====================================================
+# REPORT MASTER TABLE CONFIG
+# =====================================================
 
 def download_filtered_excel_logic(table, start, end):
     try:

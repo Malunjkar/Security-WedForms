@@ -1,70 +1,91 @@
-document.getElementById("downloadBtn").addEventListener("click", async () => {
-  const table = document.getElementById("tableSelect").value;
-  const start = document.getElementById("startDate").value;
-  const end = document.getElementById("endDate").value;
+function reportDownloadApp() {
 
-  if (!table) return alert("Select table");
-  if (!start || !end) return alert("Select date range");
-  if (start > end) return alert("Invalid date range");
+  /* ================= DOWNLOAD EXCEL ================= */
+  function downloadReport() {
 
-  try {
-    const response = await fetch("/download_filtered_excel", {
+    const table = $("#tableSelect").val();
+    const start = $("#startDate").val();
+    const end = $("#endDate").val();
+
+    if (!table) {
+      alert("Select table");
+      return;
+    }
+
+    if (!start || !end) {
+      alert("Select date range");
+      return;
+    }
+
+    if (start > end) {
+      alert("Invalid date range");
+      return;
+    }
+
+    $.ajax({
+      url: "/download_filtered_excel",
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ table, start, end })
+      contentType: "application/json",
+      data: JSON.stringify({ table, start, end }),
+      xhrFields: {
+        responseType: "blob"   // IMPORTANT for file download
+      },
+      success: function (blob, status, xhr) {
+
+        const contentType = xhr.getResponseHeader("Content-Type") || "";
+
+        if (!contentType.includes(
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )) {
+          alert("Invalid file received.");
+          return;
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${table}_${start}_to_${end}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: function (xhr) {
+        console.error(xhr.responseText);
+        alert("Download failed or server error.");
+      }
     });
-
- 
-    if (!response.ok) {
-      const text = await response.text(); 
-      console.error(text);
-      alert("Server error. Download aborted.");
-      return;
-    }
-
-    const contentType = response.headers.get("Content-Type") || "";
-
-    if (!contentType.includes(
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )) {
-      const text = await response.text();
-      console.error(text);
-      alert("Invalid file received. Not an Excel file.");
-      return;
-    }
-
-    const blob = await response.blob();
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${table}_${start}_to_${end}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-  } catch (err) {
-    console.error(err);
-    alert("Download failed");
   }
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-  fetch("/get_report_tables")
-    .then(res => res.json())
-    .then(tables => {
-      const select = document.getElementById("tableSelect");
+  /* ================= LOAD TABLE DROPDOWN ================= */
+  function loadReportTables() {
 
-      tables.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t.value;
-        opt.textContent = t.label;
-        select.appendChild(opt);
-      });
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Failed to load report tables");
+    $.ajax({
+      url: "/get_report_tables",
+      method: "GET",
+      success: function (tables) {
+
+        const select = $("#tableSelect");
+        select.empty();
+        select.append(`<option value="">Select Report</option>`);
+
+        tables.forEach(t => {
+          select.append(
+            `<option value="${t.value}">${t.label}</option>`
+          );
+        });
+      },
+      error: function () {
+        alert("Failed to load report tables");
+      }
     });
-});
+  }
+
+  /* ================= EVENT BINDING ================= */
+  $("#downloadBtn").on("click", downloadReport);
+
+  /* ================= INIT ================= */
+  loadReportTables();
+}
+
+reportDownloadApp();

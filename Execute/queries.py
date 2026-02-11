@@ -1,5 +1,6 @@
 from Execute.executesql import get_connection
 from datetime import datetime
+import pandas as pd
 
 
 #------------start Patrolling Observation Register-----------------
@@ -1547,11 +1548,6 @@ def delete_casual_labour_data(data, username="system"):
     except Exception as e:
         conn.rollback()
         return False, str(e)
-
-# ------------ report code ------------
-import pandas as pd
-from Execute.executesql import get_connection
-
 
 # =====================================================
 # REPORT MASTER TABLE CONFIG

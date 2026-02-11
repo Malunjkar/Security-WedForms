@@ -23,7 +23,7 @@ def create_app():
             "email": email,
             "name": name,
             "location": location,
-            "role": "admin" or "user"
+            "role": role
         }
 
     from route import routes_bp

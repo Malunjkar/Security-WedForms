@@ -8,25 +8,33 @@ from Execute.Functions.functions import download_filtered_excel_logic , get_repo
 
 routes_bp = Blueprint('routes_bp', __name__)
 
+def get_user_context():
+    user = session.get('user', {})
+    return {
+        "user": user,
+        "user_location": user.get('location', ''),
+        "user_role": user.get('role', 'user')
+    }
+
 @routes_bp.route('/')
 def home():
     return render_template('main.html')
 
 @routes_bp.route('/pil-patrolling')
 def pil_patrolling():
-    user = session.get('user', {})
     return render_template(
         'pil patrolling.html',
-        user_location=user.get('location', '')
+        **get_user_context()
     )
+
 
 @routes_bp.route('/pil-baa-test')
 def pil_baa_test():
-    user = session.get('user', {})
     return render_template(
         'pil baa test.html',
-        user_location=user.get('location', '')
+        **get_user_context()
     )
+
 
 
 @routes_bp.route('/casual-labour')
@@ -36,22 +44,19 @@ def casual_labour():
 
 @routes_bp.route('/pil-mitras')
 def pil_mitras():
-    user = session.get('user', {})
     return render_template(
         'pil mitras cs.html',
-        user=user,
-        user_location=user.get('location', '')
+        **get_user_context()
     )
 
 
 @routes_bp.route('/pil-vehicle')
 def pil_vehicle():
-    user = session.get('user', {})
     return render_template(
         'pil vehicle checklist.html',
-        user=user,                   
-        user_location=user.get('location', '')
+        **get_user_context()
     )
+
 # @routes_bp.route('/download_vehicle_checklist', methods=['POST'])
 # def download_vehicle_checklist():
 #     data = request.get_json()
@@ -92,12 +97,11 @@ def download_visitor_slip_pdf():
 
 @routes_bp.route('/pil-visitor')
 def pil_visitor():
-    user = session.get('user', {})
     return render_template(
         'pil visitor slip.html',
-        user=user,
-        user_location=user.get('location', '')
+        **get_user_context()
     )
+
 
 
 @routes_bp.route('/government-visitor')
@@ -112,7 +116,11 @@ def requisition_form():
 
 @routes_bp.route('/reports')
 def reports():
-    return render_template('reports.html')
+    return render_template(
+        'reports.html',
+        **get_user_context()
+    )
+
 
 #------------start Patrolling Observation Register-----------------
 routes_bp.add_url_rule('/save_patrolling_data',view_func=functions.save_patrolling_data_fn,methods=['POST'])

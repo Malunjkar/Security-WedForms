@@ -1690,7 +1690,23 @@ def fetch_data_with_date(table, start_date, end_date):
     date_column = table_cfg["date_column"]
     where_clause = table_cfg.get("where", "1=1")
 
-    col_sql = ", ".join(f"[{c}]" for c in db_columns)
+    col_sql_list = []
+
+    for col in db_columns:
+        if col.startswith("d_"):  # date columns
+            col_sql_list.append(f"FORMAT([{col}], 'yyyy-MM-dd') AS [{col}]")
+
+        elif col.startswith("t_"):  # time columns
+            col_sql_list.append(f"CONVERT(varchar(8), [{col}], 108) AS [{col}]")
+
+        elif col.startswith("dt_"):  # datetime columns
+            col_sql_list.append(f"FORMAT([{col}], 'yyyy-MM-dd HH:mm:ss') AS [{col}]")
+
+        else:
+            col_sql_list.append(f"[{col}]")
+
+    col_sql = ", ".join(col_sql_list)
+
 
     query = f"""
         SELECT {col_sql}

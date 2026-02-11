@@ -264,28 +264,39 @@ async function downloadVisitorSlipExcel(record) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Visitor Slip");
 
-  let row = 1;
+  let row = 3;
+
+  // ===== TITLE =====
+worksheet.mergeCells("A1:D1");
+worksheet.getCell("A1").value = "Visitor Declaration Slip";
+worksheet.getCell("A1").font = { bold: true, size: 14 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
 
   /* ===== VISITOR DETAILS (ONCE) ===== */
-  const masterFields = [
-    ["Location", record.s_location ?? ""],
-    ["Visitor Name", record.s_visitor_name ?? ""],
-    ["Visitor Pass No", record.s_visitor_pass_no ?? ""],
-    ["Whom To Meet", record.s_whom_to_meet ?? ""],
-    ["Visit Date / Time", record.dt_visit_datetime ?? ""]
-  ];
+ const masterFields = [
+  ["Location", record.s_location ?? ""],
+  ["Visitor Name", record.s_visitor_name ?? ""],
+  ["Visitor Pass No", record.s_visitor_pass_no ?? ""],
+  ["Whom To Meet", record.s_whom_to_meet ?? ""],
+  ["Visit Date / Time", record.dt_visit_datetime ?? ""]
+];
 
-  masterFields.forEach(([label, value]) => {
-    worksheet.getCell(`A${row}`).value = label;
-    worksheet.getCell(`A${row}`).font = { bold: true };
-    worksheet.getCell(`B${row}`).value = value;
-    row++;
-  });
+masterFields.forEach(([label, value]) => {
+  worksheet.getCell(`A${row}`).value = label;
+  worksheet.getCell(`A${row}`).font = { bold: true };
+  worksheet.getCell(`B${row}`).value = value;
+  row++;
+});
 
-  row += 1; // blank line
+row += 1; // ONE blank row only
+
 
   /* ===== ITEM TABLE HEADER ===== */
   worksheet.getRow(row).values = [
+    "Sr No",
     "Item Description",
     "UOM",
     "Quantity"
@@ -299,8 +310,10 @@ async function downloadVisitorSlipExcel(record) {
   row++;
 
   /* ===== ITEM DATA (REPEATING) ===== */
+  let srNo = 1; 
   (record.items || []).forEach(i => {
     worksheet.getRow(row).values = [
+      srNo++,
       i.s_item_code_description ?? "",
       i.s_uom ?? "",
       i.n_quantity ?? ""
@@ -368,6 +381,7 @@ async function downloadTable() {
 
   // ===== AUTO COLUMN WIDTH =====
   worksheet.columns.forEach(col => {
+    
     let max = 12;
     col.eachCell({ includeEmpty: true }, cell => {
       const len = cell.value ? cell.value.toString().length : 0;

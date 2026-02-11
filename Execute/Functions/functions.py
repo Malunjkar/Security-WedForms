@@ -397,30 +397,67 @@ def delete_casual_labour_data_fn():
 # REPORT MASTER TABLE CONFIG
 # =====================================================
 
-def download_filtered_excel_logic(table, start, end):
+from flask import jsonify, send_file, session
+
+def download_filtered_excel_logic(table, start, end, location):
     try:
+        # ---------------- BASIC VALIDATION ----------------
         if not table or not start or not end:
-            return jsonify({"success": False, "message": "Invalid input"}), 400
+            return jsonify({
+                "success": False,
+                "message": "Table and date range are required"
+            }), 400
 
-        df = fetch_data_with_date(table, start, end)
+        # ---------------- USER CONTEXT ----------------
+        user = session.get("user", {})
+        role = user.get("role", "user")
+        user_location = user.get("location")
 
-        if df.empty:
-            return jsonify({"success": False, "message": "No data found"}), 404
+        # ---------------- LOCATION ENFORCEMENT ----------------
+        # Non-admin users can download ONLY their own location data
+        if role != "admin":
+            location = user_location
 
+        # Admin must explicitly select location
+        if not location:
+            return jsonify({
+                "success": False,
+                "message": "Location is required"
+            }), 400
+
+        location = location.strip().upper()
+
+        # ---------------- FETCH DATA ----------------
+        df = fetch_data_with_date(
+            table=table,
+            start_date=start,
+            end_date=end,
+            location=location
+        )
+
+        if df is None or df.empty:
+            return jsonify({
+                "success": False,
+                "message": "No data found for selected filters"
+            }), 404
+
+        # ---------------- GENERATE EXCEL ----------------
         excel_file = write_excel(df)
 
         return send_file(
             excel_file,
             as_attachment=True,
-            download_name=f"{table}_{start}_to_{end}.xlsx",
+            download_name=f"{table}_{location}_{start}_to_{end}.xlsx",
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
     except Exception as e:
-        print(" DOWNLOAD ERROR:", e)  
+        import traceback
+        traceback.print_exc()
+
         return jsonify({
             "success": False,
-            "message": "Internal server error"
+            "message": "Report generation failed"
         }), 500
 
 
@@ -433,19 +470,21 @@ def download_filtered_excel():
             return jsonify({"success": False, "message": "Invalid JSON"}), 400
 
         return download_filtered_excel_logic(
-            data.get("table"),
-            data.get("start"),
-            data.get("end")
+            table=data.get("table"),
+            start=data.get("start"),
+            end=data.get("end"),
+            location=data.get("location")  # ✅ REQUIRED
         )
 
     except Exception as e:
         import traceback
-        traceback.print_exc()   
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "message": "Internal server error",
             "error": str(e)
         }), 500
+
 
 
 def get_report_tables_fn():
@@ -454,3 +493,15 @@ def get_report_tables_fn():
 
 def get_report_tables():
     return get_report_tables_fn()
+def get_locations_fn():
+    try:
+        user = session.get("user", {})
+        if user.get("role") != "admin":
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+        locations = queries.get_all_locations()
+        return jsonify({"success": True, "data": locations})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+

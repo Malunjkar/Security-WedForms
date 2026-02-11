@@ -40,6 +40,15 @@
         </select>
       </div>
 
+
+      <!-- LOCATION DROPDOWN (ADMIN ONLY) -->
+<div class="filter-item" id="locationFilter" style="display:none;">
+  <label>Location</label>
+  <select id="locationSelect">
+    <option value="">Select Location</option>
+  </select>
+</div>
+
       <!-- START DATE -->
       <div class="filter-item">
         <label>Start Date</label>
@@ -61,7 +70,10 @@
     </div>
 
   </div>
-  <script>const USER_LOCATION = "{{ session['user']['location'] }}";</script>
+  <script>const USER_LOCATION = "{{ session['user']['location'] }}";
+    const USER_ROLE = "{{ session['user']['role'] }}";
+  </script>
+  
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/reports.js') }}"></script>
 </body>

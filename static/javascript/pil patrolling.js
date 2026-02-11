@@ -390,7 +390,7 @@ worksheet.getRow(1).height = 40;
     if (len > maxLength) maxLength = len;
   });
 
-  column.width = Math.min(maxLength + 2, 30); 
+  column.width = Math.min(maxLength + 2, 20); 
 });
 
 

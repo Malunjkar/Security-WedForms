@@ -184,6 +184,7 @@ button {
 /* ================= TABLE FOOTER ================= */
 .table-footer {
   display: flex;
+  gap: 15px; 
   justify-content: center;
   margin: 20px 0;
 }

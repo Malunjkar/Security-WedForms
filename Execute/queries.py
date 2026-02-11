@@ -358,29 +358,52 @@ def insert_bba_test_record(cursor, data, n_sr_no, username):
 
 
 # ----------- READ ----------------
-def get_bba_test_data():
+def get_bba_test_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                n_sr_no,
-                s_location_code,
-                d_test_date,
-                t_test_time,
-                s_test_record_no,
-                s_individual_name,
-                s_person_type,
-                s_test_result,
-                n_bac_count,
-                img_attachment,
-                s_security_personnel_name,
-                s_remarks
-            FROM dbo.BAA_Test_Record_Register
-            WHERE ISNULL(delete_flag, 0) = 0
-            ORDER BY n_sr_no DESC
-        """)
+        if user_role == "admin":
+            # Admin sees all locations
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_test_date,
+                    t_test_time,
+                    s_test_record_no,
+                    s_individual_name,
+                    s_person_type,
+                    s_test_result,
+                    n_bac_count,
+                    img_attachment,
+                    s_security_personnel_name,
+                    s_remarks
+                FROM dbo.BAA_Test_Record_Register
+                WHERE ISNULL(delete_flag, 0) = 0
+                ORDER BY n_sr_no DESC
+            """)
+        else:
+            # Normal user sees only own location
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_test_date,
+                    t_test_time,
+                    s_test_record_no,
+                    s_individual_name,
+                    s_person_type,
+                    s_test_result,
+                    n_bac_count,
+                    img_attachment,
+                    s_security_personnel_name,
+                    s_remarks
+                FROM dbo.BAA_Test_Record_Register
+                WHERE ISNULL(delete_flag, 0) = 0
+                AND s_location_code = ?
+                ORDER BY n_sr_no DESC
+            """, (user_location,))
 
         rows = cursor.fetchall()
 
@@ -1398,23 +1421,40 @@ def save_casual_labour_data(data, username="system"):
         conn.rollback()
         return False, str(e)
 
-def get_casual_labour_data():
+def get_casual_labour_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                m.n_sl_no,
-                m.s_location,
-                m.s_contractor_name,
-                m.s_nature_of_work,
-                m.s_place_of_work,
-                m.dt_work_datetime
-            FROM dbo.CASUAL_LABOUR_LIST_MASTER m
-            WHERE m.n_flag = 1
-            ORDER BY m.n_sl_no DESC
-        """)
+        if user_role == "admin":
+            # Admin sees all locations
+            cursor.execute("""
+                SELECT
+                    m.n_sl_no,
+                    m.s_location,
+                    m.s_contractor_name,
+                    m.s_nature_of_work,
+                    m.s_place_of_work,
+                    m.dt_work_datetime
+                FROM dbo.CASUAL_LABOUR_LIST_MASTER m
+                WHERE m.n_flag = 1
+                ORDER BY m.n_sl_no DESC
+            """)
+        else:
+            # Normal user sees only own location
+            cursor.execute("""
+                SELECT
+                    m.n_sl_no,
+                    m.s_location,
+                    m.s_contractor_name,
+                    m.s_nature_of_work,
+                    m.s_place_of_work,
+                    m.dt_work_datetime
+                FROM dbo.CASUAL_LABOUR_LIST_MASTER m
+                WHERE m.n_flag = 1
+                AND m.s_location = ?
+                ORDER BY m.n_sl_no DESC
+            """, (user_location,))
 
         masters = cursor.fetchall()
         result = []
@@ -1458,6 +1498,9 @@ def get_casual_labour_data():
                     } for l in labours
                 ]
             })
+
+        cursor.close()
+        conn.close()
 
         return True, result
 

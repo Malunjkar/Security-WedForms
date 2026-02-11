@@ -35,11 +35,12 @@ def pil_baa_test():
         **get_user_context()
     )
 
-
-
 @routes_bp.route('/casual-labour')
 def casual_labour():
-    return render_template('casual labour list.html')
+    return render_template(
+        'casual labour list.html',
+        **get_user_context()
+    )
 
 
 @routes_bp.route('/pil-mitras')

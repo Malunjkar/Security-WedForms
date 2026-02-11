@@ -96,8 +96,14 @@ def save_bba_test_data_fn():
 
 def get_bba_test_data():
     try:
-        success, data = queries.get_bba_test_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_bba_test_data(user_role, user_location)
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -328,8 +334,14 @@ def save_casual_labour_data_fn():
 
 def get_casual_labour_data_fn():
     try:
-        success, data = queries.get_casual_labour_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_casual_labour_data(user_role, user_location)
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 

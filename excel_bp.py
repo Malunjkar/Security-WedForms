@@ -26,42 +26,41 @@ def write_excel(df: pd.DataFrame):
     df.insert(0, "Sr No", range(1, len(df) + 1))
 
     output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine="xlsxwriter")
-    df.to_excel(writer, index=False, sheet_name="Report")
 
-    workbook = writer.book
-    worksheet = writer.sheets["Report"]
+    
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Report")
 
-    text_fmt = workbook.add_format({
-        "border": 1,
-        "text_wrap": True,
-        "align": "center",    
-        "valign": "vcenter"  
-    })
+        workbook = writer.book
+        worksheet = writer.sheets["Report"]
 
+        text_fmt = workbook.add_format({
+            "border": 1,
+            "text_wrap": True,
+            "align": "center",
+            "valign": "vcenter"
+        })
 
-    header_fmt = workbook.add_format({
-        "border": 1,
-        "bold": True,
-        "align": "center",
-        "valign": "middle",
-        "bg_color": "#007bff",  
-        "font_color": "#ffffff"   
-    })
+        header_fmt = workbook.add_format({
+            "border": 1,
+            "bold": True,
+            "align": "center",
+            "valign": "middle",
+            "bg_color": "#007bff",
+            "font_color": "#ffffff"
+        })
 
+        # Header formatting
+        for col_idx, col_name in enumerate(df.columns):
+            worksheet.write(0, col_idx, col_name, header_fmt)
+            worksheet.set_column(col_idx, col_idx, 22)
 
-    # Header formatting
-    for col_idx, col_name in enumerate(df.columns):
-        worksheet.write(0, col_idx, col_name, header_fmt)
-        worksheet.set_column(col_idx, col_idx, 22)
+        # Cell formatting
+        for row_idx, row in enumerate(df.itertuples(index=False), start=1):
+            for col_idx, value in enumerate(row):
+                worksheet.write(row_idx, col_idx, value, text_fmt)
 
-    # Cell formatting
-    for row_idx, row in enumerate(df.itertuples(index=False), start=1):
-        for col_idx, value in enumerate(row):
-            worksheet.write(row_idx, col_idx, str(value), text_fmt)
+        worksheet.freeze_panes(1, 0)
 
-    worksheet.freeze_panes(1, 0)
-
-    writer.close()
     output.seek(0)
     return output

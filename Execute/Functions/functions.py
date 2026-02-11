@@ -36,8 +36,14 @@ def save_patrolling_data_fn():
 
 def get_patrolling_data():
     try:
-        success, data = queries.get_patrolling_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_patrolling_data(user_role, user_location)
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 

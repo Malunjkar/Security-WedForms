@@ -71,34 +71,60 @@ def insert_patrolling_record(cursor, data, n_sr_no, username):
     ))
 
 #------------get data----------------------
-def get_patrolling_data():
+def get_patrolling_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-           SELECT
-    n_sr_no,
-    s_location_code,
-    d_patrol_date,
-    t_from_time,
-    t_to_time,
-    s_boundary_wall_condition,
-    s_patrolling_pathway_condition,
-    s_suspicious_movement,
-    s_wild_vegetation,
-    s_illumination_status,
-    s_workers_without_valid_permit,
-    s_unknown_person_without_authorization,
-    s_unattended_office_unlocked,
-    s_other_observations_status,
-    s_remarks,
-    s_patrolling_guard_name
-FROM dbo.Patrolling_Observation_Register
-WHERE ISNULL(delete_flag, 0) = 0
-ORDER BY n_sr_no DESC
-
-        """)
+        if user_role == "admin":
+            # Admin sees all records
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_patrol_date,
+                    t_from_time,
+                    t_to_time,
+                    s_boundary_wall_condition,
+                    s_patrolling_pathway_condition,
+                    s_suspicious_movement,
+                    s_wild_vegetation,
+                    s_illumination_status,
+                    s_workers_without_valid_permit,
+                    s_unknown_person_without_authorization,
+                    s_unattended_office_unlocked,
+                    s_other_observations_status,
+                    s_remarks,
+                    s_patrolling_guard_name
+                FROM dbo.Patrolling_Observation_Register
+                WHERE ISNULL(delete_flag, 0) = 0
+                ORDER BY n_sr_no DESC
+            """)
+        else:
+            # Normal user sees only own location
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_patrol_date,
+                    t_from_time,
+                    t_to_time,
+                    s_boundary_wall_condition,
+                    s_patrolling_pathway_condition,
+                    s_suspicious_movement,
+                    s_wild_vegetation,
+                    s_illumination_status,
+                    s_workers_without_valid_permit,
+                    s_unknown_person_without_authorization,
+                    s_unattended_office_unlocked,
+                    s_other_observations_status,
+                    s_remarks,
+                    s_patrolling_guard_name
+                FROM dbo.Patrolling_Observation_Register
+                WHERE ISNULL(delete_flag, 0) = 0
+                AND s_location_code = ?
+                ORDER BY n_sr_no DESC
+            """, (user_location,))
 
         rows = cursor.fetchall()
 

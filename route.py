@@ -162,4 +162,5 @@ routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_c
 #----------- report excel_bp --------------
 routes_bp.add_url_rule('/download_filtered_excel',view_func=functions.download_filtered_excel,methods=['POST'])
 routes_bp.add_url_rule('/get_report_tables',view_func=functions.get_report_tables,methods=['GET'])
+routes_bp.add_url_rule("/get_locations",view_func=functions.get_locations_fn,methods=["GET"])
 

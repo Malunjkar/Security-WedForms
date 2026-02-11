@@ -1640,44 +1640,6 @@ def delete_casual_labour_data(data, username="system"):
 # REPORT MASTER TABLE CONFIG
 # =====================================================
 
-REPORT_TABLES = [
-    {
-        "table": "Patrolling_Observation_Register",
-        "label": "Patrolling Observation Register",
-        "date_column": "d_patrol_date",
-        "where": "ISNULL(delete_flag,0) = 0"
-    },
-    {
-        "table": "BAA_Test_Record_Register",
-        "label": "BBA Test Record Register",
-        "date_column": "d_test_date",
-        "where": "ISNULL(delete_flag,0) = 0"
-    },
-    {
-        "table": "PIPELINE_MITRA_REGISTER",
-        "label": "Pipeline Mitra Register",
-        "date_column": "d_entry_date",
-        "where": "ISNULL(delete_flag,0) = 0"
-    },
-    {
-        "table": "VEHICLE_CHECKLIST_MASTER",
-        "label": "Vehicle Checklist Register",
-        "date_column": "dt_entry_datetime",
-        "where": "n_flag = 1"
-    },
-    {
-        "table": "VISITOR_DECLARATION_SLIP_MASTER",
-        "label": "Visitor Declaration Register",
-        "date_column": "dt_visit_datetime",
-        "where": "n_flag = 1"
-    },
-    {
-        "table": "CASUAL_LABOUR_LIST_MASTER",
-        "label": "Casual Labour Register",
-        "date_column": "dt_work_datetime",
-        "where": "n_flag = 1"
-    }
-]
 
 
 
@@ -1750,10 +1712,82 @@ REPORT_COLUMNS = {
         ("dt_work_datetime", "Work Date & Time")
     ]
 }
+REPORT_TABLES = [
+    {
+        "table": "Patrolling_Observation_Register",
+        "label": "Patrolling Observation Register",
+        "date_column": "d_patrol_date",
+        "location_column": "s_location_code",
+        "where": "ISNULL(delete_flag,0) = 0"
+    },
+    {
+        "table": "BAA_Test_Record_Register",
+        "label": "BBA Test Record Register",
+        "date_column": "d_test_date",
+        "location_column": "s_location_code",
+        "where": "ISNULL(delete_flag,0) = 0"
+    },
+    {
+        "table": "PIPELINE_MITRA_REGISTER",
+        "label": "Pipeline Mitra Register",
+        "date_column": "d_entry_date",
+        "location_column": "s_location_code",
+        "where": "ISNULL(delete_flag,0) = 0"
+    },
+    {
+        "table": "VEHICLE_CHECKLIST_MASTER",
+        "label": "Vehicle Checklist Register",
+        "date_column": "dt_entry_datetime",
+        "location_column": "s_location_code",
+        "where": "n_flag = 1"
+    },
+    {
+        "table": "VISITOR_DECLARATION_SLIP_MASTER",
+        "label": "Visitor Declaration Register",
+        "date_column": "dt_visit_datetime",
+        "location_column": "s_location",
+        "where": "n_flag = 1"
+    },
+    {
+        "table": "CASUAL_LABOUR_LIST_MASTER",
+        "label": "Casual Labour Register",
+        "date_column": "dt_work_datetime",
+        "location_column": "s_location",
+        "where": "n_flag = 1"
+    }
+]
 
-
-def fetch_data_with_date(table, start_date, end_date):
+def get_all_locations():
     conn = get_connection()
+
+    if conn is None:
+        raise Exception("Database connection failed")
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT DISTINCT s_location_code
+        FROM Patrolling_Observation_Register
+        WHERE ISNULL(delete_flag, 0) = 0
+          AND s_location_code IS NOT NULL
+        ORDER BY s_location_code
+    """)
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return [r[0] for r in rows]
+
+
+
+
+def fetch_data_with_date(table, start_date, end_date, location):
+    conn = get_connection()
+
+    if conn is None:
+        raise Exception("Database connection failed")
 
     table_cfg = next(
         (t for t in REPORT_TABLES if t["table"] == table),
@@ -1771,25 +1805,21 @@ def fetch_data_with_date(table, start_date, end_date):
     display_columns = [c[1] for c in cols]
 
     date_column = table_cfg["date_column"]
+    location_column = table_cfg["location_column"]
     where_clause = table_cfg.get("where", "1=1")
 
     col_sql_list = []
-
     for col in db_columns:
-        if col.startswith("d_"):  # date columns
+        if col.startswith("d_"):
             col_sql_list.append(f"FORMAT([{col}], 'yyyy-MM-dd') AS [{col}]")
-
-        elif col.startswith("t_"):  # time columns
+        elif col.startswith("t_"):
             col_sql_list.append(f"CONVERT(varchar(8), [{col}], 108) AS [{col}]")
-
-        elif col.startswith("dt_"):  # datetime columns
+        elif col.startswith("dt_"):
             col_sql_list.append(f"FORMAT([{col}], 'yyyy-MM-dd HH:mm:ss') AS [{col}]")
-
         else:
             col_sql_list.append(f"[{col}]")
 
     col_sql = ", ".join(col_sql_list)
-
 
     query = f"""
         SELECT {col_sql}
@@ -1797,14 +1827,18 @@ def fetch_data_with_date(table, start_date, end_date):
         WHERE {where_clause}
           AND {date_column} >= ?
           AND {date_column} < DATEADD(day, 1, ?)
+          AND {location_column} = ?
     """
 
-    df = pd.read_sql(query, conn, params=[start_date, end_date])
-    conn.close()
+    df = pd.read_sql(
+        query,
+        conn,
+        params=[start_date, end_date, location]
+    )
 
+    conn.close()
     df.columns = display_columns
     return df
-
 
 def get_report_master_tables():
     return [

@@ -1,61 +1,85 @@
 function reportDownloadApp() {
 
   /* ================= DOWNLOAD EXCEL ================= */
-  function downloadReport() {
+ function downloadReport() {
+  const table = $("#tableSelect").val();
+  const start = $("#startDate").val();
+  const end = $("#endDate").val();
 
-    const table = $("#tableSelect").val();
-    const start = $("#startDate").val();
-    const end = $("#endDate").val();
+  let location = USER_LOCATION;
 
-    if (!table) {
-      alert("Select table");
+  if (USER_ROLE === "admin") {
+    location = $("#locationSelect").val();
+    if (!location) {
+      alert("Select location");
       return;
     }
-
-    if (!start || !end) {
-      alert("Select date range");
-      return;
-    }
-
-    if (start > end) {
-      alert("Invalid date range");
-      return;
-    }
-
-    $.ajax({
-      url: "/download_filtered_excel",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ table, start, end }),
-      xhrFields: {
-        responseType: "blob"   // IMPORTANT for file download
-      },
-      success: function (blob, status, xhr) {
-
-        const contentType = xhr.getResponseHeader("Content-Type") || "";
-
-        if (!contentType.includes(
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )) {
-          alert("Invalid file received.");
-          return;
-        }
-
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${table}_${start}_to_${end}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      },
-      error: function (xhr) {
-        console.error(xhr.responseText);
-        alert("Download failed or server error.");
-      }
-    });
   }
+
+  if (!table) {
+    alert("Select table");
+    return;
+  }
+
+  if (!start || !end) {
+    alert("Select date range");
+    return;
+  }
+
+  if (start > end) {
+    alert("Invalid date range");
+    return;
+  }
+
+  $.ajax({
+    url: "/download_filtered_excel",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ table, start, end, location }),
+    xhrFields: { responseType: "blob" },
+
+    success: function (blob, status, xhr) {
+      const contentType = xhr.getResponseHeader("Content-Type") || "";
+      if (!contentType.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+        alert("Invalid file received");
+        return;
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${table}_${location}_${start}_to_${end}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
+
+    error: function (xhr) {
+  if (xhr.response) {
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      console.error("Server error:", reader.result);
+      alert(reader.result);
+    };
+
+    reader.readAsText(xhr.response);
+  } else {
+    alert("Download failed");
+  }
+}
+
+
+  });
+}
+
+  function setupLocationFilter() {
+  if (USER_ROLE === "admin") {
+    $("#locationFilter").show();
+    loadLocations();
+  }
+}
 
   /* ================= LOAD TABLE DROPDOWN ================= */
   function loadReportTables() {
@@ -81,11 +105,38 @@ function reportDownloadApp() {
     });
   }
 
+function loadLocations() {
+  $.ajax({
+    url: "/get_locations",
+    method: "GET",
+    success: function (res) {
+      if (!res.success) {
+        alert("Failed to load locations");
+        return;
+      }
+
+      const select = $("#locationSelect");
+      select.empty();
+      select.append(`<option value="">Select Location</option>`);
+
+      res.data.forEach(loc => {
+        select.append(`<option value="${loc}">${loc}</option>`);
+      });
+    },
+    error: function () {
+      alert("Error loading locations");
+    }
+  });
+}
+
+
+
   /* ================= EVENT BINDING ================= */
   $("#downloadBtn").on("click", downloadReport);
 
   /* ================= INIT ================= */
   loadReportTables();
+  setupLocationFilter();
 }
 
 reportDownloadApp();

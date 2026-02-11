@@ -327,7 +327,7 @@ async function downloadTable() {
       const len = cell.value ? cell.value.toString().length : 0;
       if (len > maxLength) maxLength = len;
     });
-    column.width = Math.min(maxLength + 2, 30);
+    column.width = Math.min(maxLength + 2, 20);
   });
 
   /* ===== DOWNLOAD ===== */

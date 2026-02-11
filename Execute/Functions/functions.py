@@ -353,39 +353,65 @@ def delete_casual_labour_data_fn():
     except Exception as e:
         return error_response(str(e), 500)
 
-from flask import send_file, jsonify
-from Execute.queries import fetch_data_with_date , get_report_master_tables
+from flask import send_file, jsonify, request
+from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
 
+
 def download_filtered_excel_logic(table, start, end):
+    try:
+        if not table or not start or not end:
+            return jsonify({"success": False, "message": "Invalid input"}), 400
 
-    if not table or not start or not end:
-        return jsonify({"success": False, "message": "Invalid input"}), 400
+        df = fetch_data_with_date(table, start, end)
 
-    df = fetch_data_with_date(table, start, end)
+        if df.empty:
+            return jsonify({"success": False, "message": "No data found"}), 404
 
-    if df.empty:
-        return jsonify({"success": False, "message": "No data found"}), 404
+        excel_file = write_excel(df)
 
-    excel_file = write_excel(df)
+        return send_file(
+            excel_file,
+            as_attachment=True,
+            download_name=f"{table}_{start}_to_{end}.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
-    return send_file(
-        excel_file,
-        as_attachment=True,
-        download_name="Filtered_Report.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    except Exception as e:
+        print(" DOWNLOAD ERROR:", e)  
+        return jsonify({
+            "success": False,
+            "message": "Internal server error"
+        }), 500
+
+
+def download_filtered_excel():
+    try:
+        data = request.get_json(silent=True)
+        print("DEBUG JSON:", data)
+
+        if not data:
+            return jsonify({"success": False, "message": "Invalid JSON"}), 400
+
+        return download_filtered_excel_logic(
+            data.get("table"),
+            data.get("start"),
+            data.get("end")
+        )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()   
+        return jsonify({
+            "success": False,
+            "message": "Internal server error",
+            "error": str(e)
+        }), 500
+
+
 def get_report_tables_fn():
     return jsonify(get_report_master_tables())
 
-def download_filtered_excel():
-    data = request.json
-
-    table = data.get("table")
-    start = data.get("start")
-    end = data.get("end")
-
-    return download_filtered_excel_logic(table, start, end)
 
 def get_report_tables():
     return get_report_tables_fn()

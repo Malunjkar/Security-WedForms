@@ -306,10 +306,9 @@ worksheet.getCell("A1").alignment = {
 };
 worksheet.getRow(1).height = 30;
 
-// ===== 3 BLANK ROWS =====
+// =====  BLANK ROWS =====
 worksheet.addRow([]);
-worksheet.addRow([]);
-worksheet.addRow([]);
+
 
 
   // ===== HEADERS =====

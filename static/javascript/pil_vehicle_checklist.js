@@ -382,41 +382,46 @@ function vehicleChecklistApp() {
 
 
   /* ================= DOWNLOAD CHECKLIST (ROW LEVEL) ================= */
-/* ================= DOWNLOAD CHECKLIST (SINGLE RECORD – CLEAN FORMAT) ================= */
+
 async function downloadChecklistExcel(record) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Vehicle Checklist");
 
-  let rowIndex = 1;
-
+ let rowIndex = 3; 
+  
   // ===== MASTER DETAILS (ONCE) =====
-  worksheet.getCell(`A${rowIndex}`).value = "Vehicle No";
-  worksheet.getCell(`B${rowIndex}`).value = record.s_vehicle_no ?? "";
+  worksheet.mergeCells("A1:D1");
+worksheet.getCell("A1").value = "Vehicle Checklist Register";
+worksheet.getCell("A1").font = { bold: true, size: 14 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
+  
+
+  /* ===== ONE BLANK ROW ===== */
+worksheet.addRow([]);
+
+ const masterFields = [
+  ["Vehicle No", record.s_vehicle_no ?? ""],
+  ["Vehicle Type", record.s_vehicle_type ?? ""],
+  ["Driver Name", record.s_driver_name ?? ""],
+  ["Contact No", record.s_contact_no ?? ""],
+  ["Entry Date / Time", record.dt_entry_datetime ?? ""]
+];
+
+masterFields.forEach(([label, value]) => {
+  worksheet.getCell(`A${rowIndex}`).value = label;
+  worksheet.getCell(`A${rowIndex}`).font = { bold: true }; 
+  worksheet.getCell(`B${rowIndex}`).value = value;
   rowIndex++;
+});
 
-  worksheet.getCell(`A${rowIndex}`).value = "Vehicle Type";
-  worksheet.getCell(`B${rowIndex}`).value = record.s_vehicle_type ?? "";
-  rowIndex++;
-
-  worksheet.getCell(`A${rowIndex}`).value = "Driver Name";
-  worksheet.getCell(`B${rowIndex}`).value = record.s_driver_name ?? "";
-  rowIndex++;
-
-  worksheet.getCell(`A${rowIndex}`).value = "Contact No";
-  worksheet.getCell(`B${rowIndex}`).value = record.s_contact_no ?? "";
-  rowIndex++;
-
-  worksheet.getCell(`A${rowIndex}`).value = "Entry Date / Time";
-  worksheet.getCell(`B${rowIndex}`).value = record.dt_entry_datetime ?? "";
-  rowIndex += 2; // blank line
-
-  // ===== BOLD MASTER LABELS =====
-  for (let i = 1; i <= 5; i++) {
-    worksheet.getCell(`A${i}`).font = { bold: true };
-  }
+rowIndex += 1; 
 
   // ===== CHECKLIST TABLE HEADER =====
   worksheet.getRow(rowIndex).values = [
+    "Sr No",
     "Checklist Item",
     "Status",
     "Remark"
@@ -430,8 +435,10 @@ async function downloadChecklistExcel(record) {
   rowIndex++;
 
   // ===== CHECKLIST DATA (REPEATING) =====
+  let srNo = 1; 
   record.checklist.forEach(c => {
     worksheet.getRow(rowIndex).values = [
+      srNo++, 
       c.s_check_label ?? "",
       c.s_status === "Y" ? "Yes" : "No",
       c.s_remark ?? ""
@@ -439,15 +446,15 @@ async function downloadChecklistExcel(record) {
     rowIndex++;
   });
 
-  // ===== AUTO COLUMN WIDTH =====
-  worksheet.columns.forEach(col => {
-    let max = 15;
-    col.eachCell({ includeEmpty: true }, cell => {
-      const len = cell.value ? cell.value.toString().length : 0;
-      if (len > max) max = len;
-    });
-    col.width = max + 2;
-  });
+
+// ===== COLUMN WIDTHS (MASTER + CHECKLIST) =====
+worksheet.getColumn(1).width = 17;   // Sr No
+worksheet.getColumn(2).width = 38;  // Checklist Item
+worksheet.getColumn(3).width = 14;  // Status
+worksheet.getColumn(4).width = 30;  // Remark
+
+
+
 
   // ===== DOWNLOAD FILE =====
   const buffer = await workbook.xlsx.writeBuffer();
@@ -475,56 +482,72 @@ async function downloadTable() {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Vehicle Entry Register");
 
-  // ===== HEADERS (EXACTLY LIKE UI TABLE) =====
-  const headers = [
-    "Sr No",
-    "Location",
-    "Date / Time",
-    "Vehicle No",
-    "Vehicle Type",
-    "Driver Name",
-    "Contact No",
-    "Purpose of Entry"
-  ];
+  /* ===== TITLE ===== */
+worksheet.mergeCells("A1:H1");
+worksheet.getCell("A1").value = "Vehicle Entry Register";
+worksheet.getCell("A1").font = { bold: true, size: 14 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
 
-  worksheet.addRow(headers);
+/* ===== ONE BLANK ROW ===== */
+worksheet.addRow([]);
 
-  // ===== DATA (ALL RECORDS, MASTER ONLY) =====
-  allData.forEach((r, index) => {
-    worksheet.addRow([
-      index + 1,
-      r.s_location_code ?? "",
-      r.dt_entry_datetime ?? "",
-      r.s_vehicle_no ?? "",
-      r.s_vehicle_type ?? "",
-      r.s_driver_name ?? "",
-      r.s_contact_no ?? "",
-      r.s_purpose_of_entry ?? ""
-    ]);
-  });
+/* ===== HEADERS ===== */
+const headers = [
+  "Sr No",
+  "Location",
+  "Date / Time",
+  "Vehicle No",
+  "Vehicle Type",
+  "Driver Name",
+  "Contact No",
+  "Purpose of Entry"
+];
 
-  // ===== BOLD HEADER ROW =====
-  worksheet.getRow(1).eachCell(cell => {
+worksheet.addRow(headers);
+
+/* ===== STYLE HEADER ROW (ROW 3) ===== */
+worksheet.getRow(3).eachCell(cell => {
+  cell.font = { bold: true };
+  cell.alignment = {
+    vertical: "middle",
+    horizontal: "center"
+  };
+});
+
+/* ===== DATA ===== */
+allData.forEach((r, index) => {
+  worksheet.addRow([
+    index + 1,
+    r.s_location_code ?? "",
+    r.dt_entry_datetime ?? "",
+    r.s_vehicle_no ?? "",
+    r.s_vehicle_type ?? "",
+    r.s_driver_name ?? "",
+    r.s_contact_no ?? "",
+    r.s_purpose_of_entry ?? ""
+  ]);
+});
+
+/* ===== BOLD SR NO COLUMN ===== */
+worksheet.getColumn(1).eachCell((cell, rowNumber) => {
+  if (rowNumber > 3) {
     cell.font = { bold: true };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  });
+  }
+});
 
-  // ===== BOLD SR NO COLUMN =====
-  worksheet.getColumn(1).eachCell((cell, rowNumber) => {
-    if (rowNumber !== 1) {
-      cell.font = { bold: true };
-    }
+/* ===== AUTO COLUMN WIDTH ===== */
+worksheet.columns.forEach(column => {
+  let maxLength = 12;
+  column.eachCell({ includeEmpty: true }, cell => {
+    const len = cell.value ? cell.value.toString().length : 0;
+    if (len > maxLength) maxLength = len;
   });
+  column.width = Math.min(maxLength + 2, 30);
+});
 
-  // ===== AUTO COLUMN WIDTH =====
-  worksheet.columns.forEach(column => {
-    let maxLength = 10;
-    column.eachCell({ includeEmpty: true }, cell => {
-      const len = cell.value ? cell.value.toString().length : 0;
-      if (len > maxLength) maxLength = len;
-    });
-    column.width = maxLength + 2;
-  });
 
   // ===== DOWNLOAD =====
   const buffer = await workbook.xlsx.writeBuffer();

@@ -481,8 +481,20 @@ if (editingLabourIndex !== null) {
 async function downloadLabourDetailsExcel(record) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Labour Details");
+  /* ===== TITLE ===== */
+worksheet.mergeCells("A1:G1");
+worksheet.getCell("A1").value = "Casual Labour Details";
+worksheet.getCell("A1").font = { bold: true, size: 14 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
 
-  let row = 1;
+/* ===== ONE BLANK ROW ===== */
+worksheet.addRow([]);
+
+
+  let row = 3;
 
   // ===== MASTER DETAILS (ONCE) =====
   const masterFields = [
@@ -567,6 +579,18 @@ async function downloadTable() {
 
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Casual Labour Register");
+  /* ===== TITLE ===== */
+worksheet.mergeCells("A1:E1");
+worksheet.getCell("A1").value = "Casual Labour Register";
+worksheet.getCell("A1").font = { bold: true, size: 14 };
+worksheet.getCell("A1").alignment = {
+  horizontal: "center",
+  vertical: "middle"
+};
+
+/* ===== ONE BLANK ROW ===== */
+worksheet.addRow([]);
+
 
   const headers = [
     "Location",
@@ -577,6 +601,15 @@ async function downloadTable() {
   ];
 
   worksheet.addRow(headers);
+  /* ===== BOLD HEADER ROW ===== */
+worksheet.getRow(3).eachCell(cell => {
+  cell.font = { bold: true };
+  cell.alignment = {
+    vertical: "middle",
+    horizontal: "center"
+  };
+});
+
 
   allData.forEach(r => {
     worksheet.addRow([

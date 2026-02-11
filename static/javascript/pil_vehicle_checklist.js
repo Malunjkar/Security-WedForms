@@ -56,47 +56,38 @@ function vehicleChecklistApp() {
 
 
   function renderPage() {
-    const tbody = $("#masterTable tbody").empty();
+  const tbody = document.querySelector("#masterTable tbody");
+  tbody.innerHTML = "";
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const template = document.getElementById("vehicleRowTemplate");
 
-    const pageData = allData.slice(start, end);
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach((r, index) => {
-      const tr = $(`
-      <tr>
-        <td>${start + index + 1}</td>
-        <td>${r.s_location_code || ""}</td>
-        <td>${r.dt_entry_datetime || ""}</td>
-        <td>${r.s_vehicle_no || ""}</td>
-        <td>${r.s_vehicle_type || ""}</td>
-        <td>${r.s_driver_name || ""}</td>
-        <td>${r.s_contact_no || ""}</td>
-        <td>${r.s_purpose_of_entry || ""}</td>
-        <td>
-  <button class="icon-btn edit" title="Edit">
-    <i class="fa fa-pen"></i>
-  </button>
+  pageData.forEach((r, index) => {
 
-  <button class="icon-btn delete" title="Delete">
-    <i class="fa fa-trash"></i>
-  </button>
+    const clone = template.content.cloneNode(true);
+    const tr = clone.querySelector("tr");
 
-  <button class="icon-btn download" title="Download Checklist">
-    <i class="fa fa-download"></i>
-  </button>
-</td>
+    tr.querySelector(".sr").textContent = start + index + 1;
+    tr.querySelector(".location").textContent = r.s_location_code || "";
+    tr.querySelector(".datetime").textContent = r.dt_entry_datetime || "";
+    tr.querySelector(".vehicleno").textContent = r.s_vehicle_no || "";
+    tr.querySelector(".vehicletype").textContent = r.s_vehicle_type || "";
+    tr.querySelector(".driver").textContent = r.s_driver_name || "";
+    tr.querySelector(".contact").textContent = r.s_contact_no || "";
+    tr.querySelector(".purpose").textContent = r.s_purpose_of_entry || "";
 
-      </tr>
-    `);
+    // attach data
+    $(tr).data("record", r);
 
-      tr.data("record", r);
-      tbody.append(tr);
-    });
+    tbody.appendChild(clone);
+  });
 
-    updatePaginationButtons();
-  }
+  updatePaginationButtons();
+}
+
 
 
   function updatePaginationButtons() {

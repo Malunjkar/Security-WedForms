@@ -11,29 +11,30 @@
 
 <body>
 
-  <header class="header-dashboard">
-    <div class="hamburger-dashboard">
-      ☰
-      <a href="{{ url_for('routes_bp.home') }}">
-        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-      </a>
+<header class="header-dashboard">
+  <div class="hamburger-dashboard">
+    ☰
+    <a href="{{ url_for('routes_bp.home') }}">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+    </a>
+  </div>
 
+  <h2>Visitor Declaration Slip</h2>
+
+  <div id="profileAvatar">
+    <div id="profileInitials">
+      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
     </div>
+    <span style="margin-left:8px;font-weight:bold;color:black;">
+      {{ (session.get('user') or {}).get('name','Guest User') }}
+    </span>
+  </div>
+</header>
 
-    <h2>Visitor Declaration Slip</h2>
+<div class="container">
 
-    <div id="profileAvatar">
-      <div id="profileInitials">
-        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
-      </div>
-      <span style="margin-left:8px;font-weight:bold;color:black;">
-        {{ (session.get('user') or {}).get('name','Guest User') }}</span>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <div class="toolbar" id="paginationBar">
+<!-- PAGINATION -->
+<div class="toolbar" id="paginationBar">
   <div class="pagination">
     <button id="prevBtn" onclick="prevPage()">◀ Back</button>
     <span id="pageInfo"></span>
@@ -41,36 +42,71 @@
   </div>
 </div>
 
+<!-- ================= LIST VIEW ================= -->
+<div id="listView">
 
-    <!-- =============== LIST VIEW =============== -->
-    <div id="listView">
-      
+<table id="masterTable">
+<thead>
+<tr>
+  <th>Location</th>
+  <th>Visitor Name</th>
+  <th>Pass No</th>
+  <th>Date / Time</th>
 
-      <table id="masterTable">
-        <thead>
-          <tr>
-            <th>Location</th>
-            <th>Visitor Name</th>
-            <th>Pass No</th>
-            <th>Date / Time</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="table-footer">
-    <button class="btn-add" onclick="openAddForm()">Add Data</button>
-    <button class="btn-download" onclick="downloadTable()">
+  {% if user_role != 'admin' %}
+  <th>Action</th>
+  {% endif %}
+
+</tr>
+</thead>
+<tbody></tbody>
+
+<!-- MASTER ROW TEMPLATE -->
+<template id="visitorRowTemplate">
+<tr>
+  <td class="location"></td>
+  <td class="visitor-name"></td>
+  <td class="pass-no"></td>
+  <td class="visit-datetime"></td>
+
+  {% if user_role != 'admin' %}
+  <td class="action-col">
+    <button class="icon-btn edit">
+      <i class="fa fa-pen"></i>
+    </button>
+    <button class="icon-btn delete">
+      <i class="fa fa-trash"></i>
+    </button>
+    <button class="icon-btn download">
+      <i class="fa-solid fa-download"></i>
+    </button>
+  </td>
+  {% endif %}
+
+</tr>
+</template>
+
+</table>
+
+<div class="table-footer">
+
+{% if user_role != 'admin' %}
+<button class="btn-add" onclick="openAddForm()">Add Data</button>
+{% endif %}
+
+<button class="btn-download" onclick="downloadTable()">
   <i class="fa-solid fa-download"></i> Download
 </button>
+
 </div>
-    </div>
 
-    <!-- =============== STEP 1 =============== -->
-    <div id="step1" class="form-box">
-      <h3>Visitor Details</h3>
+</div>
 
-      <div class="row">
+<!-- ================= STEP 1 ================= -->
+<div id="step1" class="form-box">
+<h3>Visitor Details</h3>
+
+<div class="row">
   <div class="field">
     <label for="s_location">Location</label>
     <input id="s_location">
@@ -101,14 +137,13 @@
   </div>
 </div>
 
+</div>
 
-    </div>
+<!-- ================= STEP 2 ================= -->
+<div id="step2" class="form-box">
+<h3>Item Details</h3>
 
-    <!-- =============== STEP 2 =============== -->
-    <div id="step2" class="form-box">
-      <h3>Item Details</h3>
-
-      <div class="row">
+<div class="row">
   <div class="field field-small">
     <label for="item_desc">Item Code / Description</label>
     <input id="item_desc">
@@ -125,34 +160,66 @@
   </div>
 </div>
 
+{% if user_role != 'admin' %}
+<button onclick="addItem()">Add Item</button>
+{% endif %}
 
-      <button onclick="addItem()">Add Item</button>
+<table id="itemTable">
+<thead>
+<tr>
+  <th>Description</th>
+  <th>UOM</th>
+  <th>Qty</th>
 
-      <table id="itemTable">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>UOM</th>
-            <th>Qty</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+  {% if user_role != 'admin' %}
+  <th>Action</th>
+  {% endif %}
 
-      <br>
-      
-      <button class="btn-save" onclick="saveData()">Save</button>
+</tr>
+</thead>
+<tbody></tbody>
 
-    </div>
+<!-- ITEM ROW TEMPLATE -->
+<template id="itemRowTemplate">
+<tr>
+  <td class="desc"></td>
+  <td class="uom"></td>
+  <td class="qty"></td>
 
+  {% if user_role != 'admin' %}
+  <td>
+    <button class="icon-btn edit">
+      <i class="fa fa-pen"></i>
+    </button>
+    <button class="icon-btn delete">
+      <i class="fa fa-trash"></i>
+    </button>
+  </td>
+  {% endif %}
 
-  </div>
-  <script>const USER_LOCATION = "{{ (session.get('user') or {}).get('location','') }}";</script>
-  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
+</tr>
+</template>
+
+</table>
+
+<br>
+
+{% if user_role != 'admin' %}
+<button class="btn-save" onclick="saveData()">Save</button>
+{% endif %}
+
+</div>
+
+</div>
+
+<script>
+  const USER_LOCATION = "{{ user_location }}";
+  const USER_ROLE = "{{ user_role }}";
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
 
 </body>
-
 </html>

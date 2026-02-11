@@ -17,7 +17,6 @@
       <a href="{{ url_for('routes_bp.home') }}">
         <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
       </a>
-
     </div>
 
     <h2>Pipeline Mitra Register</h2>
@@ -52,7 +51,11 @@
           <th>Village</th>
           <th>Mobile No</th>
           <th>Remarks</th>
-          <th>Action</th>
+
+          {% if user_role != 'admin' %}
+          <th class="action-col">Action</th>
+          {% endif %}
+
         </tr>
       </thead>
       <tbody></tbody>
@@ -60,11 +63,16 @@
   </div>
 
   <div class="table-footer">
-    <button class="btn-add" onclick="addRow()">Add Row</button>
-    <button class="btn-save" onclick="saveTable()">Save</button>
+
+    {% if user_role != 'admin' %}
+      <button class="btn-add" onclick="addRow()">Add Row</button>
+      <button class="btn-save" onclick="saveTable()">Save</button>
+    {% endif %}
+
     <button class="btn-download" onclick="downloadTable()">
         <i class="fa-solid fa-download"></i> Download
     </button>
+
   </div>
 
   <!-- ADD ROW TEMPLATE -->
@@ -79,6 +87,7 @@
       <td><input type="text"></td>
       <td><input type="text"></td>
 
+      {% if user_role != 'admin' %}
       <td class="action-col">
         <button class="icon-btn edit" onclick="editRow(this)">
           <i class="fa-solid fa-pen"></i>
@@ -87,6 +96,8 @@
           <i class="fa-solid fa-trash"></i>
         </button>
       </td>
+      {% endif %}
+
     </tr>
   </template>
 
@@ -102,6 +113,7 @@
       <td class="mobile"></td>
       <td class="remarks"></td>
 
+      {% if user_role != 'admin' %}
       <td class="action-col">
         <button class="icon-btn edit" onclick="editRow(this)">
           <i class="fa-solid fa-pen"></i>
@@ -110,13 +122,19 @@
           <i class="fa-solid fa-trash"></i>
         </button>
       </td>
+      {% endif %}
+
     </tr>
   </template>
-  <script>const USER_LOCATION = "{{ user_location }}";</script>
+
+  <script>
+      const USER_LOCATION = "{{ user_location }}";
+      const USER_ROLE = "{{ user_role }}";
+  </script>
+
   <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
 
 </body>
-
 </html>

@@ -157,8 +157,14 @@ def save_pipeline_mitra_data_fn():
 
 def get_pipeline_mitra_data():
     try:
-        success, data = queries.get_pipeline_mitra_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_pipeline_mitra_data(user_role, user_location)
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -226,8 +232,14 @@ def save_vehicle_checklist_full_fn():
 
 def get_vehicle_checklist_data_fn():
     try:
-        success, data = queries.get_vehicle_checklist_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_vehicle_checklist_data(user_role, user_location)
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -281,8 +293,16 @@ def save_visitor_declaration_data_fn():
 
 def get_visitor_declaration_data_fn():
     try:
-        success, data = queries.get_visitor_declaration_data()
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_visitor_declaration_data(
+            user_role, user_location
+        )
+
         return success_response(data=data) if success else error_response("Failed to fetch data")
+
     except Exception as e:
         return error_response(str(e), 500)
 

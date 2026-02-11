@@ -659,66 +659,44 @@ def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
 
 
 # ------------ READ -----------------
-def get_pipeline_mitra_data():
+def get_pipeline_mitra_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                n_sr_no,
-                s_location_code,
-                d_entry_date,
-                s_chainage_no,
-                s_pm_name,
-                s_pm_village_name,
-                s_pm_mobile_no,
-                s_remarks
-            FROM dbo.PIPELINE_MITRA_REGISTER
-            WHERE ISNULL(delete_flag, 0) = 0
-            ORDER BY n_sr_no DESC
-        """)
-
-        rows = cursor.fetchall()
-
-        result = []
-        for r in rows:
-            result.append({
-                "n_sr_no": r[0],
-                "s_location_code": r[1],
-                "d_entry_date": str(r[2]),
-                "s_chainage_no": r[3],
-                "s_pm_name": r[4],
-                "s_pm_village_name": r[5],
-                "s_pm_mobile_no": r[6],
-                "s_remarks": r[7]
-            })
-
-        cursor.close()
-        conn.close()
-
-        return True, result
-
-    except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT
-                n_sr_no,
-                s_location_code,
-                d_entry_date,
-                s_chainage_no,
-                s_pm_name,
-                s_pm_village_name,
-                s_pm_mobile_no,
-                s_remarks
-            FROM dbo.PIPELINE_MITRA_REGISTER
-            ORDER BY n_sr_no DESC
-        """)
+        if user_role == "admin":
+            # Admin sees all locations
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_entry_date,
+                    s_chainage_no,
+                    s_pm_name,
+                    s_pm_village_name,
+                    s_pm_mobile_no,
+                    s_remarks
+                FROM dbo.PIPELINE_MITRA_REGISTER
+                WHERE ISNULL(delete_flag, 0) = 0
+                ORDER BY n_sr_no DESC
+            """)
+        else:
+            # Normal user sees only own location
+            cursor.execute("""
+                SELECT
+                    n_sr_no,
+                    s_location_code,
+                    d_entry_date,
+                    s_chainage_no,
+                    s_pm_name,
+                    s_pm_village_name,
+                    s_pm_mobile_no,
+                    s_remarks
+                FROM dbo.PIPELINE_MITRA_REGISTER
+                WHERE ISNULL(delete_flag, 0) = 0
+                AND s_location_code = ?
+                ORDER BY n_sr_no DESC
+            """, (user_location,))
 
         rows = cursor.fetchall()
 
@@ -936,28 +914,45 @@ def save_vehicle_checklist_full(data, username="system"):
     except Exception as e:
         conn.rollback()
         return False, str(e)
-
-
-def get_vehicle_checklist_data():
+    
+def get_vehicle_checklist_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                n_vc_id,
-                s_location_code,
-                dt_entry_datetime,
-                s_vehicle_no,
-                s_vehicle_type,
-                s_driver_name,
-                s_contact_no,
-                s_occupants_name,
-                s_purpose_of_entry
-            FROM dbo.VEHICLE_CHECKLIST_MASTER
-            WHERE n_flag = 1
-            ORDER BY n_vc_id DESC
-        """)
+        if user_role == "admin":
+            cursor.execute("""
+                SELECT
+                    n_vc_id,
+                    s_location_code,
+                    dt_entry_datetime,
+                    s_vehicle_no,
+                    s_vehicle_type,
+                    s_driver_name,
+                    s_contact_no,
+                    s_occupants_name,
+                    s_purpose_of_entry
+                FROM dbo.VEHICLE_CHECKLIST_MASTER
+                WHERE n_flag = 1
+                ORDER BY n_vc_id DESC
+            """)
+        else:
+            cursor.execute("""
+                SELECT
+                    n_vc_id,
+                    s_location_code,
+                    dt_entry_datetime,
+                    s_vehicle_no,
+                    s_vehicle_type,
+                    s_driver_name,
+                    s_contact_no,
+                    s_occupants_name,
+                    s_purpose_of_entry
+                FROM dbo.VEHICLE_CHECKLIST_MASTER
+                WHERE n_flag = 1
+                AND s_location_code = ?
+                ORDER BY n_vc_id DESC
+            """, (user_location,))
 
         masters = cursor.fetchall()
         result = []
@@ -997,10 +992,14 @@ def get_vehicle_checklist_data():
                 ]
             })
 
+        cursor.close()
+        conn.close()
+
         return True, result
 
     except Exception as e:
         return False, str(e)
+
 
 
 def update_vehicle_checklist_data(data, username="system"):
@@ -1182,23 +1181,39 @@ def save_visitor_declaration_data(data, username="system"):
         return False, str(e)
 
 
-def get_visitor_declaration_data():
+def get_visitor_declaration_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                n_sl_no,
-                s_location,
-                dt_visit_datetime,
-                s_visitor_name,
-                s_visitor_pass_no,
-                s_whom_to_meet
-            FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
-            WHERE n_flag = 1
-            ORDER BY n_sl_no DESC
-        """)
+        # 🔹 Role-based filtering
+        if user_role == "admin":
+            cursor.execute("""
+                SELECT
+                    n_sl_no,
+                    s_location,
+                    dt_visit_datetime,
+                    s_visitor_name,
+                    s_visitor_pass_no,
+                    s_whom_to_meet
+                FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
+                WHERE n_flag = 1
+                ORDER BY n_sl_no DESC
+            """)
+        else:
+            cursor.execute("""
+                SELECT
+                    n_sl_no,
+                    s_location,
+                    dt_visit_datetime,
+                    s_visitor_name,
+                    s_visitor_pass_no,
+                    s_whom_to_meet
+                FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
+                WHERE n_flag = 1
+                AND s_location = ?
+                ORDER BY n_sl_no DESC
+            """, (user_location,))
 
         masters = cursor.fetchall()
         result = []
@@ -1232,6 +1247,9 @@ def get_visitor_declaration_data():
                     } for i in items
                 ]
             })
+
+        cursor.close()
+        conn.close()
 
         return True, result
 

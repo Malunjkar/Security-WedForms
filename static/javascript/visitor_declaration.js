@@ -27,38 +27,34 @@ function visitorDeclarationApp() {
   }
 
   /* ============ RENDER MASTER ============ */
-  function renderTable() {
-    const tbody = $("#masterTable tbody");
-    tbody.empty();
+ function renderTable() {
+  const tbody = document.querySelector("#masterTable tbody");
+  tbody.innerHTML = "";
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const template = document.getElementById("visitorRowTemplate");
 
-    const pageData = allData.slice(start, end);
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach(r => {
-      const tr = $(`
-      <tr>
-        <td>${r.s_location}</td>
-        <td>${r.s_visitor_name}</td>
-        <td>${r.s_visitor_pass_no}</td>
-        <td>${r.dt_visit_datetime}</td>
-        <td>
-          <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
-          <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
-          <button class="icon-btn download" title="Download Visitor Slip">
-    <i class="fa-solid fa-download"></i>
-  </button>
-        </td>
-      </tr>
-    `);
+  pageData.forEach(r => {
 
-      tr.data("record", r);
-      tbody.append(tr);
-    });
+    const clone = template.content.cloneNode(true);
+    const tr = clone.querySelector("tr");
 
-    updatePaginationButtons();
-  }
+    tr.querySelector(".location").textContent = r.s_location || "";
+    tr.querySelector(".visitor-name").textContent = r.s_visitor_name || "";
+    tr.querySelector(".pass-no").textContent = r.s_visitor_pass_no || "";
+    tr.querySelector(".visit-datetime").textContent = r.dt_visit_datetime || "";
+
+    $(tr).data("record", r);
+
+    tbody.appendChild(clone);
+  });
+
+  updatePaginationButtons();
+}
+
 
   function updatePaginationButtons() {
     const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
@@ -155,28 +151,27 @@ function visitorDeclarationApp() {
 
 
   function renderItems() {
-    const tbody = $("#itemTable tbody");
-    tbody.empty();
+  const tbody = document.querySelector("#itemTable tbody");
+  tbody.innerHTML = "";
 
-    items.forEach((i, idx) => {
-      tbody.append(`
-        <tr>
-          <td>${i.s_item_code_description}</td>
-          <td>${i.s_uom}</td>
-          <td>${i.n_quantity}</td>
-          <td>
-  <button class="icon-btn edit" onclick="editItem(${idx})">
-    <i class="fa fa-pen"></i>
-  <button class="icon-btn delete" onclick="removeItem(${idx})" title="Delete">
-  <i class="fa-solid fa-trash"></i>
-</button>
+  const template = document.getElementById("itemRowTemplate");
 
+  items.forEach((i, idx) => {
 
+    const clone = template.content.cloneNode(true);
+    const tr = clone.querySelector("tr");
 
-        </tr>
-      `);
-    });
-  }
+    tr.querySelector(".desc").textContent = i.s_item_code_description || "";
+    tr.querySelector(".uom").textContent = i.s_uom || "";
+    tr.querySelector(".qty").textContent = i.n_quantity || "";
+
+    tr.querySelector(".edit").addEventListener("click", () => editItem(idx));
+    tr.querySelector(".delete").addEventListener("click", () => removeItem(idx));
+
+    tbody.appendChild(clone);
+  });
+}
+
   window.editItem = (index) => {
     const i = items[index];
 

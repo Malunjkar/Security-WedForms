@@ -84,7 +84,13 @@
       <td><input type="text"></td>
       <td><input type="text"></td>
       <td><input type="text"></td>
-      <td><input type="text"></td>
+      <td>
+  <input type="text"
+         maxlength="10"
+         oninput="this.value = this.value.replace(/[^0-9]/g,'')"
+         >
+</td>
+
       <td><input type="text"></td>
 
       {% if user_role != 'admin' %}

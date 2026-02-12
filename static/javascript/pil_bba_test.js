@@ -475,7 +475,7 @@ async function downloadTable() {
 
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "BBA_Test_Record_Register.xlsx";
+  link.download = "BAA_Test_Record_Register.xlsx";
   link.click();
 }
 

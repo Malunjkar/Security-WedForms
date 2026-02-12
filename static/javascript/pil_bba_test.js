@@ -1,3 +1,5 @@
+let currentPreviewFile = null;
+
 function bbaTestApp() {
   let allData = [];
   let currentPage = 1;
@@ -54,18 +56,55 @@ function bbaTestApp() {
 }
 
 
-  function showFile(base64, type, name) {
-    const modal = document.getElementById("filePreviewModal");
-    const frame = document.getElementById("fileFrame");
-
-    if (!base64) {
-      alert("No file available");
-      return;
-    }
-
-    frame.src = base64;
-    modal.classList.remove("hidden");
+function showFile(base64, type, name) {
+  if (!base64) {
+    alert("No file available");
+    return;
   }
+
+  const win = window.open("", "_blank");
+
+  win.document.open();
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${name}</title>
+        <link rel="stylesheet" href="/static/css/pil_bba_test.css">
+      </head>
+      <body class="file-preview-body">
+
+        <div class="file-preview-toolbar">
+          <span>${name}</span>
+          <button onclick="downloadFile()">Download</button>
+        </div>
+
+        <div class="file-preview-viewer">
+          ${
+            type.startsWith("image/")
+              ? `<img src="${base64}" />`
+              : `<iframe src="${base64}"></iframe>`
+          }
+        </div>
+
+        <script>
+          function downloadFile() {
+            const a = document.createElement("a");
+            a.href = "${base64}";
+            a.download = "${name}";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        </script>
+
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+
 
   function closePreview() {
     const modal = document.getElementById("filePreviewModal");
@@ -88,20 +127,54 @@ function bbaTestApp() {
 }
 
 
-  function openFromInput(btn) {
-    const input = btn.closest("td").querySelector("input[type='file']");
+function openFromInput(btn) {
+  const input = btn.closest("td").querySelector("input[type='file']");
 
-    if (!input || !input.dataset.base64) {
-      alert("No file attached");
-      return;
-    }
-
-    showFile(
-      input.dataset.base64,
-      input.dataset.type || "application/octet-stream",
-      input.dataset.name || "Attachment",
-    );
+  if (!input || !input.dataset.base64) {
+    alert("No file attached");
+    return;
   }
+
+  showFile(
+    input.dataset.base64,
+    input.dataset.type,
+    input.dataset.name
+  );
+}
+
+
+ function downloadCurrentFile() {
+  if (!currentPreviewFile) {
+    alert("No file to download");
+    return;
+  }
+
+  const { base64, name } = currentPreviewFile;
+
+  const byteString = atob(base64.split(",")[1]);
+  const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
+
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+
+  const blob = new Blob([ab], { type: mimeString });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name || "attachment";
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
 
   /* ================= ADD ROW ================= */
   function addRow() {
@@ -493,6 +566,7 @@ async function downloadTable() {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
   window.closePreview = closePreview;
+  window.downloadCurrentFile = downloadCurrentFile;
 
   document.addEventListener("DOMContentLoaded", loadBbaData);
 }

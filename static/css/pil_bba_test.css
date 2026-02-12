@@ -331,3 +331,62 @@ textarea {
 .btn-download:hover {
     background: #218838;
 }
+/* ===== FILE PREVIEW VIEWER ===== */
+.file-preview-viewer {
+  height: calc(100vh - 50px);
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+/* IMAGE PREVIEW */
+.file-preview-viewer img {
+   max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;        
+  display: block;
+}
+
+/* PDF / OTHER FILE PREVIEW */
+.file-preview-viewer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+/* ===== FILE PREVIEW TOOLBAR ===== */
+.file-preview-toolbar {
+  height: 50px;
+  padding: 0 16px;
+  background: #1f2937;          /* dark header */
+  color: #ffffff;
+  display: flex;
+  align-items: center;          /* vertical center */
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Title text */
+.file-preview-toolbar span {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Download button */
+.file-preview-toolbar button {
+  padding: 6px 14px;
+  background: #22c55e;          /* green */
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.file-preview-toolbar button:hover {
+  background: #16a34a;
+}

@@ -159,6 +159,12 @@ routes_bp.add_url_rule('/get_casual_labour_data',view_func=functions.get_casual_
 routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_casual_labour_data_fn,methods=['POST'])
 routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])
 
+# ------------ REQUISITION FORM -----------------
+routes_bp.add_url_rule('/save_requisition_form',view_func=functions.save_requisition_form_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_requisition_form',view_func=functions.get_requisition_form_fn,methods=['GET'])
+routes_bp.add_url_rule('/update_requisition_form',view_func=functions.update_requisition_form_fn,methods=['POST'])
+routes_bp.add_url_rule('/delete_requisition_form',view_func=functions.delete_requisition_form_fn,methods=['POST'])
+
 #----------- report excel_bp --------------
 routes_bp.add_url_rule('/download_filtered_excel',view_func=functions.download_filtered_excel,methods=['POST'])
 routes_bp.add_url_rule('/get_report_tables',view_func=functions.get_report_tables,methods=['GET'])

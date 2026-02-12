@@ -121,22 +121,37 @@ function pipelineMitraApp() {
 
   /* ================= EDIT ================= */
 
-  function editRow(btn) {
-    const row = btn.closest("tr");
-    row.dataset.edited = "true";
+function editRow(btn) {
+  const row = btn.closest("tr");
+  row.dataset.edited = "true";
 
-    row.querySelector(".loc").innerText = USER_LOCATION;
+  row.querySelector(".loc").innerText = USER_LOCATION;
 
-    const d = row.children[2].innerText;
-    row.children[2].innerHTML = `<input type="date" value="${d}">`;
+  const d = row.children[2].innerText;
+  row.children[2].innerHTML = `<input type="date" value="${d}">`;
 
-    [3, 4, 5, 6, 7].forEach(i => {
-      const val = row.children[i].innerText;
+  [3, 4, 5, 6, 7].forEach(i => {
+    const val = row.children[i].innerText;
+
+    if (i === 6) {
+      const cleanMobile = val.replace(/[^0-9]/g, '').slice(0, 10);
+
+      row.children[i].innerHTML = `
+        <input type="text"
+          value="${cleanMobile}"
+          maxlength="10"
+          inputmode="numeric"
+          oninput="this.value = this.value.replace(/[^0-9]/g,'').slice(0,10)"
+          placeholder="10 digit mobile"
+        >
+      `;
+    } else {
       row.children[i].innerHTML = `<input type="text" value="${val}">`;
-    });
+    }
+  });
 
-    btn.disabled = true;
-  }
+  btn.disabled = true;
+}
 
   /* ================= SAVE ================= */
 
@@ -179,6 +194,25 @@ function pipelineMitraApp() {
       s_pm_mobile_no: td[6].querySelector("input")?.value,
       s_remarks: td[7].querySelector("input")?.value
     };
+
+
+
+for (let row of rows) {
+  if (!row.dataset.new && !row.dataset.edited) continue;
+
+  const mobileInput = row.children[6].querySelector("input");
+  if (!mobileInput) continue;
+
+  const mobile = mobileInput.value.trim();
+
+  if (!/^\d{10}$/.test(mobile)) {
+    alert("Mobile number must be exactly 10 digits");
+    mobileInput.focus();
+    return; 
+  }
+}
+
+
 
     // INSERT
    if (row.dataset.new) {

@@ -270,6 +270,9 @@ worksheet.getCell("A1").alignment = {
   vertical: "middle"
 };
 
+worksheet.addRow([]); 
+
+
   /* ===== VISITOR DETAILS (ONCE) ===== */
  const masterFields = [
   ["Location", record.s_location ?? ""],
@@ -345,10 +348,25 @@ async function downloadTable() {
     return;
   }
 
+  
   const workbook = new ExcelJS.Workbook();
+
+  
   const worksheet = workbook.addWorksheet("Visitor Declaration Register");
 
-  // ===== TABLE HEADERS (EXACT UI MATCH) =====
+  
+  worksheet.mergeCells("A1:D1");
+  worksheet.getCell("A1").value = "Visitor Declaration Register";
+  worksheet.getCell("A1").font = { bold: true, size: 14 };
+  worksheet.getCell("A1").alignment = {
+    horizontal: "center",
+    vertical: "middle"
+  };
+
+  
+  worksheet.addRow([]);
+
+  
   const headers = [
     "Location",
     "Visitor Name",
@@ -358,7 +376,7 @@ async function downloadTable() {
 
   worksheet.addRow(headers);
 
-  // ===== TABLE DATA (NO INTERNAL FIELDS) =====
+
   allData.forEach(r => {
     worksheet.addRow([
       r.s_location ?? "",
@@ -368,15 +386,13 @@ async function downloadTable() {
     ]);
   });
 
-  // ===== HEADER STYLING =====
-  worksheet.getRow(1).eachCell(cell => {
+
+  worksheet.getRow(3).eachCell(cell => {
     cell.font = { bold: true };
     cell.alignment = { horizontal: "center", vertical: "middle" };
   });
 
-  // ===== AUTO COLUMN WIDTH =====
   worksheet.columns.forEach(col => {
-    
     let max = 12;
     col.eachCell({ includeEmpty: true }, cell => {
       const len = cell.value ? cell.value.toString().length : 0;
@@ -385,7 +401,7 @@ async function downloadTable() {
     col.width = max + 2;
   });
 
-  // ===== DOWNLOAD FILE =====
+
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -396,6 +412,7 @@ async function downloadTable() {
   link.download = "Visitor_Declaration_Register.xlsx";
   link.click();
 }
+
 
   window.nextPage = nextPage;
   window.prevPage = prevPage;

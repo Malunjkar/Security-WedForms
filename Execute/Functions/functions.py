@@ -394,6 +394,69 @@ def delete_casual_labour_data_fn():
         return error_response(str(e), 500)
 
 # =====================================================
+# Requisition Form
+# =====================================================
+
+def save_requisition_form_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return error_response("No data received")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.create_requisition_form(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def get_requisition_form_fn():
+    try:
+        user = session.get("user", {})
+        user_role = user.get("role")
+        user_location = user.get("location")
+
+        success, data = queries.get_requisition_forms(user_role, user_location)
+
+        return success_response(data=data) if success else error_response("Failed to fetch data")
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def update_requisition_form_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return error_response("No data received")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.update_requisition_form(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+def delete_requisition_form_fn():
+    try:
+        data = request.get_json(force=True)
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
+
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.delete_requisition_form(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+# =====================================================
 # REPORT MASTER TABLE CONFIG
 # =====================================================
 

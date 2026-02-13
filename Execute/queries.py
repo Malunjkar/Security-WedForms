@@ -1,5 +1,5 @@
 from Execute.executesql import get_connection
-from datetime import datetime
+from datetime import datetime , date
 import pandas as pd
 
 
@@ -1789,7 +1789,16 @@ def get_requisition_forms(user_role, user_location):
         rows = cursor.fetchall()
         columns = [col[0] for col in cursor.description]
 
-        data = [dict(zip(columns, row)) for row in rows]
+        def normalize_dates(row_dict):
+            for k, v in row_dict.items():
+                if isinstance(v, (date, datetime)):
+                    row_dict[k] = v.strftime("%Y-%m-%d")
+            return row_dict
+
+        data = []
+        for row in rows:
+            record = dict(zip(columns, row))
+            data.append(normalize_dates(record))
 
         cursor.close()
         conn.close()

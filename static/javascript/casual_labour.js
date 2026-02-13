@@ -312,6 +312,15 @@ if (!labourValid) {
   return;
 }
 
+const ageNum = Number(age);
+
+if (!Number.isInteger(ageNum) || ageNum < 1) {
+  markMandatory(document.getElementById("labour_age"));
+  alert("Age must be a valid number greater than 0.");
+  return;
+}
+
+
 
     /* ===== MOBILE ===== */
     if (!isValidMobile(mobile)) {

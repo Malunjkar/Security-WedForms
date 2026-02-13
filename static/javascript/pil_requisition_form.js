@@ -229,10 +229,7 @@ function requisitionFormApp() {
     };
 
     const url = isEdit ? "/update_requisition_form" : "/save_requisition_form";
-    const dob = formatDate(getVal(r, "dt_date_of_birth"));
-    $("#dt_date_of_birth").val(dob);
-    $("#n_age").val(calculateAgeFromDOB(dob));
-
+    
 
     $.ajax({
       url,
